@@ -1,22 +1,26 @@
 import { parseEther, Wallet } from "ethers";
 import { env } from "./configs";
-import { PROVIDER } from "./constants";
+import { HOLD_ADDRESS, NATIVE, PROVIDER } from "./constants";
 import { MemeLauncher } from "./meme/launcher";
 import { MemeSwap } from "./meme/swap";
+import { Keys } from "./keys";
+import { BoostHoldersViaSwap } from "./vol-maker/boost-holders";
 
 async function main() {
     const pk = env.keys.pk;
 
     const wallet = new Wallet(pk, PROVIDER);
 
-    const token = '0xAc9853af82AE0027e5a0C559b5d56132C6D3b28a';
-    const pump = await MemeSwap.getPump(token);
+    const sniperKeys = require('src/secrets/besa/end-keys.json') as Keys.WalletKey[];
+    
 
-    // const hash = await MemeSwap.buy(wallet, pump, parseEther('0.01'));
-    // console.log(hash);
-
-    const hash = await MemeSwap.sell(wallet, token, pump, parseEther('7000'));
-    console.log(hash);
+    await BoostHoldersViaSwap.boostHoldersViaSwaps(
+        wallet,
+        sniperKeys,
+        NATIVE,
+        HOLD_ADDRESS,
+        sniperKeys.map(k => parseEther('0.1'))
+    )
 }
 
 main();

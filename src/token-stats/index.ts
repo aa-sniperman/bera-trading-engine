@@ -8,7 +8,7 @@ export namespace TokenStats {
     export async function reportBalances(config: TokenConfigInfo) {
         const makerSets = Keys.getVolKeys(config);
 
-        let totalMetis = 0;
+        let totalberachain = 0;
         let totalBase = 0;
 
         for (let i = 0; i < makerSets.length; i++) {
@@ -16,14 +16,14 @@ export namespace TokenStats {
             const balances = await Token.getBalances(
                 makerSets[i].map(k => k.address),
                 [NATIVE, config.address],
-                ['Metis', config.symbol]
+                ['berachain', config.symbol]
             )
             console.log(balances);
-            totalMetis += Number(balances['total']['Metis']);
+            totalberachain += Number(balances['total']['berachain']);
             totalBase += Number(balances['total'][config.symbol]);
         }
 
-        console.log(totalMetis, totalBase)
+        console.log(totalberachain, totalBase)
     }
 
     export async function get24hVolume(pair: string) {
@@ -31,7 +31,7 @@ export namespace TokenStats {
         const maxAttempt = 5
         while (attempt <= maxAttempt) {
             try {
-                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/metis/${pair}`
+                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/berachain/${pair}`
                 const response = await axios.get(apiEndpoint);
                 console.log(response.data.pairs[0].volume.h24);
                 return response.data.pairs[0].volume.h24;
@@ -48,7 +48,7 @@ export namespace TokenStats {
         const maxAttempt = 5
         while (attempt <= maxAttempt) {
             try {
-                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/metis/${pair}`
+                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/berachain/${pair}`
                 const response = await axios.get(apiEndpoint);
                 console.log(response.data.pairs[0].volume.h1);
                 return response.data.pairs[0].volume.h1;
@@ -65,7 +65,7 @@ export namespace TokenStats {
         const maxAttempt = 5
         while (attempt <= maxAttempt) {
             try {
-                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/metis/${pair}`
+                const apiEndpoint = `https://api.dexscreener.com/latest/dex/pairs/berachain/${pair}`
                 const response = await axios.get(apiEndpoint);
                 return Number(response.data.pairs[0].priceUsd);
             }

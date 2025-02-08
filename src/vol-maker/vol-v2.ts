@@ -1,6 +1,6 @@
 import { formatEther, parseEther, Wallet } from "ethers";
-import { PROVIDER, TokenConfigInfo, A8_PAIR } from "src/constants";
-import { DojoSwap } from "src/dojo/swap";
+import { HOLD_BERA_PAIR, PROVIDER, TokenConfigInfo } from "src/constants";
+import { HoldsoAggSwapper } from "src/holdso/agg-swapper";
 import { Keys } from "src/keys";
 import { Token } from "src/token";
 import { TokenStats } from "src/token-stats";
@@ -31,7 +31,7 @@ export namespace VolumeMakerV2 {
 
         private async _update() {
             try {
-                this.quotePrice = Number(await TokenStats.getTokenPrice(A8_PAIR));
+                this.quotePrice = Number(await TokenStats.getTokenPrice(HOLD_BERA_PAIR));
                 this.basePrice = Number(await TokenStats.getTokenPrice(this.baseTokenConfig.pair));
 
                 const tokenBalances = await Token.getBalances(this.makers.map(maker => maker.address), [
@@ -64,6 +64,7 @@ export namespace VolumeMakerV2 {
                     this.balances = paired.map((pair) => pair.balance).slice(0, this.config.maxWalletsNum);
                 }
 
+                console.log(this.balances)
             } catch (err) {
 
             }
@@ -183,9 +184,21 @@ export namespace VolumeMakerV2 {
 
                     let hash;
                     if (!isBuy) {
-                        hash = await DojoSwap.sellTokenToA8(senderWallet, this.baseTokenConfig.address, tradeAmount, recipient.address);
+                        hash = await HoldsoAggSwapper.executeSwap({
+                            wallet: senderWallet,
+                            from: this.baseTokenConfig.address,
+                            amountIn: tradeAmount.toString(),
+                            to: this.quoteToken,
+                            slippage: 5
+                        })
                     } else {
-                        hash = await DojoSwap.buyTokenWithA8(senderWallet, this.baseTokenConfig.address, tradeAmount);
+                        hash = await HoldsoAggSwapper.executeSwap({
+                            wallet: senderWallet,
+                            to: this.baseTokenConfig.address,
+                            amountIn: tradeAmount.toString(),
+                            from: this.quoteToken,
+                            slippage: 5
+                        });
                     }
 
                     console.log(hash);
@@ -254,9 +267,21 @@ export namespace VolumeMakerV2 {
 
                     let hash;
                     if (!isBuy) {
-                        hash = await DojoSwap.sellTokenToA8(senderWallet, this.baseTokenConfig.address, tradeAmount);
+                        hash = await HoldsoAggSwapper.executeSwap({
+                            wallet: senderWallet,
+                            from: this.baseTokenConfig.address,
+                            amountIn: tradeAmount.toString(),
+                            to: this.quoteToken,
+                            slippage: 5
+                        })
                     } else {
-                        hash = await DojoSwap.buyTokenWithA8(senderWallet, this.baseTokenConfig.address, tradeAmount);
+                        hash = await HoldsoAggSwapper.executeSwap({
+                            wallet: senderWallet,
+                            to: this.baseTokenConfig.address,
+                            amountIn: tradeAmount.toString(),
+                            from: this.quoteToken,
+                            slippage: 5
+                        });
                     }
 
                     console.log(hash);
