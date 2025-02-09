@@ -1,5 +1,5 @@
 import { TransactionRequest, Wallet } from "ethers";
-import { CHAIN_ID, HOLDSO_ROUTER_ADDRESS, MAX_UINT256, PROVIDER } from "src/constants";
+import { CHAIN_ID, HOLDSO_ROUTER_ADDRESS, MAX_UINT256, PROVIDER, WRAPPED_NATIVE } from "src/constants";
 import { ERC20__factory, HoldsoRouter__factory } from "src/contracts";
 import { ISwapRouter } from "src/contracts/HoldsoRouter";
 export namespace HoldsoSwap {
@@ -17,10 +17,13 @@ export namespace HoldsoSwap {
   }
 
   export async function executeSwap(privKey: string, params: ISwapRouter.ExactInputSingleParamsStruct) {
-    await approveTokenIfNeeded(privKey, params.tokenIn as string, params.amountIn as bigint);
+    if (params.tokenIn !== WRAPPED_NATIVE)
+      await approveTokenIfNeeded(privKey, params.tokenIn as string, params.amountIn as bigint);
     const wallet = new Wallet(privKey, PROVIDER);
     const routerContract = HoldsoRouter__factory.connect(HOLDSO_ROUTER_ADDRESS, wallet);
-    const tx = await routerContract.exactInputSingle(params);
+    const tx = await routerContract.exactInputSingle(params, {
+      value: params.tokenIn === WRAPPED_NATIVE ? params.amountIn : 0n
+    });
     await tx.wait();
     return tx.hash;
   }

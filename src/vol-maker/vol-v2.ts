@@ -1,6 +1,7 @@
 import { formatEther, parseEther, Wallet } from "ethers";
-import { HOLD_BERA_PAIR, PROVIDER, TokenConfigInfo } from "src/constants";
+import { HOLD_BERA_PAIR, NATIVE, PROVIDER, TokenConfigInfo, WRAPPED_NATIVE } from "src/constants";
 import { HoldsoAggSwapper } from "src/holdso/agg-swapper";
+import { HoldsoSwap } from "src/holdso/swapper";
 import { Keys } from "src/keys";
 import { Token } from "src/token";
 import { TokenStats } from "src/token-stats";
@@ -64,7 +65,6 @@ export namespace VolumeMakerV2 {
                     this.balances = paired.map((pair) => pair.balance).slice(0, this.config.maxWalletsNum);
                 }
 
-                console.log(this.balances)
             } catch (err) {
 
             }
@@ -184,21 +184,30 @@ export namespace VolumeMakerV2 {
 
                     let hash;
                     if (!isBuy) {
-                        hash = await HoldsoAggSwapper.executeSwap({
-                            wallet: senderWallet,
-                            from: this.baseTokenConfig.address,
-                            amountIn: tradeAmount.toString(),
-                            to: this.quoteToken,
-                            slippage: 5
-                        })
+                        hash = await HoldsoSwap.executeSwap(senderWallet.privateKey,
+                            {
+                                tokenIn: this.baseTokenConfig.address === NATIVE ? WRAPPED_NATIVE : this.baseTokenConfig.address,
+                                tokenOut: this.quoteToken,
+                                fee: 3000,
+                                recipient: recipient.address,
+                                deadline: Date.now() + 60000,
+                                amountIn: tradeAmount,
+                                amountOutMinimum: 0,
+                                sqrtPriceLimitX96: 0
+                            }
+                        )
                     } else {
-                        hash = await HoldsoAggSwapper.executeSwap({
-                            wallet: senderWallet,
-                            to: this.baseTokenConfig.address,
-                            amountIn: tradeAmount.toString(),
-                            from: this.quoteToken,
-                            slippage: 5
-                        });
+                        hash = await HoldsoSwap.executeSwap(senderWallet.privateKey,
+                            {
+                                tokenIn: this.quoteToken,
+                                tokenOut: this.baseTokenConfig.address === NATIVE ? WRAPPED_NATIVE : this.baseTokenConfig.address,
+                                fee: 3000,
+                                recipient: recipient.address,
+                                deadline: Date.now() + 60000,
+                                amountIn: tradeAmount,
+                                amountOutMinimum: 0,
+                                sqrtPriceLimitX96: 0
+                            })
                     }
 
                     console.log(hash);
@@ -267,23 +276,31 @@ export namespace VolumeMakerV2 {
 
                     let hash;
                     if (!isBuy) {
-                        hash = await HoldsoAggSwapper.executeSwap({
-                            wallet: senderWallet,
-                            from: this.baseTokenConfig.address,
-                            amountIn: tradeAmount.toString(),
-                            to: this.quoteToken,
-                            slippage: 5
-                        })
+                        hash = await HoldsoSwap.executeSwap(senderWallet.privateKey,
+                            {
+                                tokenIn: this.baseTokenConfig.address === NATIVE ? WRAPPED_NATIVE : this.baseTokenConfig.address,
+                                tokenOut: this.quoteToken,
+                                fee: 3000,
+                                recipient: sender.address,
+                                deadline: Date.now() + 60000,
+                                amountIn: tradeAmount,
+                                amountOutMinimum: 0,
+                                sqrtPriceLimitX96: 0
+                            }
+                        )
                     } else {
-                        hash = await HoldsoAggSwapper.executeSwap({
-                            wallet: senderWallet,
-                            to: this.baseTokenConfig.address,
-                            amountIn: tradeAmount.toString(),
-                            from: this.quoteToken,
-                            slippage: 5
-                        });
+                        hash = await HoldsoSwap.executeSwap(senderWallet.privateKey,
+                            {
+                                tokenIn: this.quoteToken,
+                                tokenOut: this.baseTokenConfig.address === NATIVE ? WRAPPED_NATIVE : this.baseTokenConfig.address,
+                                fee: 3000,
+                                recipient: sender.address,
+                                deadline: Date.now() + 60000,
+                                amountIn: tradeAmount,
+                                amountOutMinimum: 0,
+                                sqrtPriceLimitX96: 0
+                            })
                     }
-
                     console.log(hash);
                     buySuccess = true;
                 } catch (err) {

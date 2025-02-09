@@ -10,12 +10,14 @@ export namespace HoldsoAggSwapper {
         to, //Destination token address.
         amountIn, // Amount of the source token to swap. 1000000000000000000 -> 1e18 ~~ 1 BERA
         slippage, // Allowed slippage in percentage. example: 0.05 -> 5%
+        recipient
     }: {
         wallet: Wallet,
         from: string;
         to: string;
         amountIn: string;
         slippage: number;
+        recipient: string
     }) {
         const isFromNative = isNativeToken(from);
         if (!isFromNative)
@@ -28,7 +30,7 @@ export namespace HoldsoAggSwapper {
                     src: from,
                     dst: to,
                     amount: amountIn,
-                    receiver: wallet.address,
+                    receiver: recipient,
                     slippage,
                 },
             }
