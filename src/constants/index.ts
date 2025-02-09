@@ -33,7 +33,7 @@ export interface TokenConfigInfo {
   }
   export const TokenConfig = {
     BERA: {
-      address: NATIVE,
+      address: WRAPPED_NATIVE,
       pair: HOLD_BERA_PAIR,
       symbol: "BERA"
     }

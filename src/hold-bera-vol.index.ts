@@ -1,4 +1,4 @@
-import { HOLD_ADDRESS, NATIVE, TokenConfig } from "./constants";
+import { HOLD_ADDRESS, NATIVE, TokenConfig, WRAPPED_NATIVE } from "./constants";
 import { FundDistribution } from "./fund-distribution";
 import { Keys } from "./keys";
 import { VolumeMakerV2 } from "./vol-maker/vol-v2";
@@ -24,23 +24,23 @@ async function main() {
     //     randomArrayWithSum(10, 2790, 250, 310).map(n => parseEther(n.toString()))
     // )
 
-    const balances = await Token.getBalances(
-        makers.map(k => k.address),
-        [HOLD_ADDRESS, NATIVE],
-        ['HOLD', 'BERA']
-    )
-    console.log(balances);
+    // const balances = await Token.getBalances(
+    //     makers.map(k => k.address),
+    //     [HOLD_ADDRESS, WRAPPED_NATIVE, NATIVE],
+    //     ['HOLD', 'WBERA', 'BERA']
+    // )
+    // console.log(balances);
 
     // HoldsoMixTrade.mixSwapMultiWallets(makers.slice(0, 10).map(k => k.privateKey), 10);
 
-    // const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
-    //     targetVol1h: 40000,
-    //     minTradeSize: 1,
-    //     timeScale: 1000,
-    //     maxWalletsNum: 10,
-    //     disableRebalancing: true
-    // })
-    // await volMaker.run();
+    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
+        targetVol1h: 40000,
+        minTradeSize: 30,
+        timeScale: 100,
+        maxWalletsNum: 30,
+        disableRebalancing: true
+    })
+    await volMaker.run();
 }
 
 main().then();

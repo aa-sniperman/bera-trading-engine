@@ -17,13 +17,10 @@ export namespace HoldsoSwap {
   }
 
   export async function executeSwap(privKey: string, params: ISwapRouter.ExactInputSingleParamsStruct) {
-    if (params.tokenIn !== WRAPPED_NATIVE)
-      await approveTokenIfNeeded(privKey, params.tokenIn as string, params.amountIn as bigint);
+    await approveTokenIfNeeded(privKey, params.tokenIn as string, params.amountIn as bigint);
     const wallet = new Wallet(privKey, PROVIDER);
     const routerContract = HoldsoRouter__factory.connect(HOLDSO_ROUTER_ADDRESS, wallet);
-    const tx = await routerContract.exactInputSingle(params, {
-      value: params.tokenIn === WRAPPED_NATIVE ? params.amountIn : 0n
-    });
+    const tx = await routerContract.exactInputSingle(params);
     await tx.wait();
     return tx.hash;
   }
