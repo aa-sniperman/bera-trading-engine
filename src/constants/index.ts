@@ -36,5 +36,10 @@ export interface TokenConfigInfo {
       address: WRAPPED_NATIVE,
       pair: HOLD_BERA_PAIR,
       symbol: "BERA"
+    },
+    THOON: {
+      address: "0xe80e3b8D439A4c2271CB58076FF79bEB1998179E",
+      pair: "0x6C9dD9d1431E8aD2aA0b99002F0019Fb5D0880e5",
+      symbol: "THOON"
     }
   }

@@ -9,18 +9,28 @@ import { randomArrayWithSum } from "./utils";
 import { HoldsoMixTrade } from "./holdso/mixswap";
 import { BoostHoldersViaSwap } from "./vol-maker/boost-holders";
 
-async function main() {
-    const holders = require('src/secrets/bera/holder-keys.json') as Keys.WalletKey[];
+function genKeys() {
+    Keys.genKeys(500, 'thoon/holder-keys-1')
+}
 
+async function main() {
+    const holders = require('src/secrets/thoon/holder-keys-1.json') as Keys.WalletKey[];
+
+    const makers = (require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[]).slice(90, 100);
     const dstAmounts = randomArrayWithSum(500, 34, 0.02, 0.5).map(n => parseEther(n.toString()))
 
-    await BoostHoldersViaSwap.boostHoldersViaSwaps(
-        new Wallet(BERA, PROVIDER),
-        holders.slice(150, 200),
-        NATIVE,
-        HOLD_ADDRESS,
-        dstAmounts.slice(150, 200)
-    )
+    let promises = []
+    for (let i = 0; i < makers.length; i++) {
+        const maker = makers[i];
+        promises.push(BoostHoldersViaSwap.boostHoldersViaSwaps(
+            new Wallet(maker.privateKey, PROVIDER),
+            holders.slice(i * 50, i * 50 + 50),
+            NATIVE,
+            TokenConfig.THOON.address,
+            dstAmounts.slice(i * 50, i * 50 + 50),
+        ))
+    }
+    await Promise.all(promises);
     // const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
 
     // await FundDistribution.distribute(
@@ -54,4 +64,4 @@ async function main() {
     // await volMaker.run();
 }
 
-main().then();
+main();
