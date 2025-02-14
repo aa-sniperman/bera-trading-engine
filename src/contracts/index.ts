@@ -3,10 +3,14 @@
 /* eslint-disable */
 export type { ERC20 } from "./ERC20";
 export type { HoldsoRouter } from "./HoldsoRouter";
+export type { LP } from "./LP";
+export type { LockVault } from "./LockVault";
 export type { Meme } from "./Meme";
 export type { MemeFactory } from "./MemeFactory";
 export * as factories from "./factories";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { HoldsoRouter__factory } from "./factories/HoldsoRouter__factory";
+export { LockVault__factory } from "./factories/LockVault__factory";
+export { LP__factory } from "./factories/LP__factory";
 export { Meme__factory } from "./factories/Meme__factory";
 export { MemeFactory__factory } from "./factories/MemeFactory__factory";

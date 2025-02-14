@@ -12,10 +12,10 @@ export namespace HoldSoSniper {
     export function extractPairCreated(log: ethers.Log) {
         const event = agentFiInterface.parseLog(log);
         if (!event) return;
-        if (event.name !== 'List(uint256,uint256,address,address)') return;
+        if (event.name !== 'List') return;
         const creation: HoldSoListing = {
-            token: event.args[0],
-            pool: event.args[1],
+            token: '',
+            pool: event.args[2],
         }
         return creation;
     }
@@ -92,7 +92,7 @@ export namespace HoldSoSniper {
             await this.preApprove();
             await this.precalculateNonces();
         }
-        async run(token: string, fromBlock: number, feeTier = 3000) {
+        async run(pump: string, token: string, fromBlock: number, feeTier = 3000) {
             this.latestBlock = fromBlock;
             while (true) {
                 try {
@@ -104,20 +104,18 @@ export namespace HoldSoSniper {
                         // fromBlock: 51587325,
                         // toBlock: 51587340,
                         topics: [
-                            ethers.id("List(uint256,uint256,address,address)"),
-                            ethers.zeroPadValue(BERAIS_FACTORY, 32),
-                        ]
+                            ethers.id("List(uint256,uint256,address,address)")
+                        ],
+                        address: pump
                     })
 
                     console.log(logs);
                     const creations = logs.map(log => extractPairCreated(log)).filter(c => c !== undefined);
                     console.log(creations);
-                    for (const creation of creations) {
-                        if (creation.token === token) {
-                            console.log(`Detected new pool: ${creation.pool}. Sniping.....`)
-                            await this.batchBuy(token, feeTier);
-                            return;
-                        }
+                    if (creations.length > 0) {
+                        console.log(`Detected new pool: ${creations[0].pool}. Sniping.....`)
+                        await this.batchBuy(token, feeTier);
+                        return;
                     }
 
                     const latest = await PROVIDER.getBlock('latest');

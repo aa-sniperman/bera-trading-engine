@@ -1,4 +1,4 @@
-import { ethers, getAddress, solidityPackedKeccak256, TransactionRequest, Wallet } from "ethers";
+import { ethers, getAddress, parseEther, solidityPackedKeccak256, TransactionRequest, Wallet } from "ethers";
 import { env } from "src/configs";
 import { CHAIN_ID, HOLD_ADDRESS, BERAIS_FACTORY, PROVIDER } from "src/constants";
 import { ERC20__factory, Meme__factory, MemeFactory__factory } from "src/contracts";
@@ -123,14 +123,14 @@ export namespace MemeSwap {
         wallet: Wallet,
         nonce: number,
         pump: string,
-        amountIn: bigint,
         allocation: bigint,
     ) {
+        const maximumIn = parseEther('5000');
         const approvalData = ERC20__factory.createInterface().encodeFunctionData(
             "approve",
             [
                 pump,
-                amountIn
+                maximumIn
             ]
         )
         const approvalTx: TransactionRequest = {
@@ -156,10 +156,10 @@ export namespace MemeSwap {
         })
 
         const data = Meme__factory.createInterface().encodeFunctionData(
-            "whitelistBuyExactIn",
+            "whitelistBuyExactOut",
             [
-                amountIn,
-                0n,
+                allocation,
+                maximumIn,
                 wallet.address,
                 id,
                 allocation,
@@ -183,5 +183,82 @@ export namespace MemeSwap {
         wallet.provider!.broadcastTransaction(signedApprovalTx);
         const receipt = await wallet.provider!.broadcastTransaction(signedTx);
         return receipt.hash;
+    }
+
+    export async function prepareForWhitelistBuy(
+        wallet: Wallet,
+        nonce: number,
+        pump: string,
+        allocation: bigint
+    ) {
+        const maximumIn = parseEther('5000');
+
+        const id =
+            Date.now().toString() +
+            BigInt('0x' + crypto.randomUUID().replace(/-/g, '')).toString();
+        const expiredBlockNumber = Date.now() + 100000000;
+        const signature = await sign({
+            id,
+            pumpAddress: pump,
+            walletAddress: wallet.address,
+            remainingAmountAllocation: allocation,
+            expiredBlockNumber
+        })
+
+        const data = Meme__factory.createInterface().encodeFunctionData(
+            "whitelistBuyExactOut",
+            [
+                allocation,
+                maximumIn,
+                wallet.address,
+                id,
+                allocation,
+                expiredBlockNumber,
+                signature
+            ]
+        );
+        const tx: TransactionRequest = {
+            from: wallet.address,
+            to: pump,
+            gasLimit: 1_000_000n,
+            gasPrice: 100_000_000n,
+            data,
+            nonce,
+            type: 0,
+            chainId: BigInt(CHAIN_ID)
+        }
+
+        const signedTx = await wallet.signTransaction(tx);
+
+        return signedTx;
+    }
+
+    export async function prepareForBuy(
+        wallet: Wallet,
+        nonce: number,
+        pump: string,
+        amountIn: bigint
+    ) {
+        const data = Meme__factory.createInterface().encodeFunctionData(
+            "swapExactIn",
+            [
+                amountIn,
+                0n,
+                true,
+                wallet.address
+            ]
+        );
+        const tx: TransactionRequest = {
+            from: wallet.address,
+            to: pump,
+            gasLimit: 1_000_000n,
+            gasPrice: 100_000_000n,
+            data,
+            nonce,
+            type: 0,
+            chainId: BigInt(CHAIN_ID)
+        }
+        const signedTx = await wallet.signTransaction(tx);
+        return signedTx;
     }
 }

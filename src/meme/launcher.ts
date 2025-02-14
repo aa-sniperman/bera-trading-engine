@@ -2,7 +2,7 @@ import axios from "axios";
 import { parseEther, Wallet, ZeroAddress } from "ethers";
 import { env } from "src/configs";
 import { BERAIS_FACTORY, HOLD_ADDRESS, MAX_UINT256, PROVIDER } from "src/constants";
-import { ERC20__factory, MemeFactory__factory } from "src/contracts";
+import { ERC20__factory, LockVault__factory, MemeFactory__factory } from "src/contracts";
 import { IMemeFactory } from "src/contracts/MemeFactory";
 
 export enum MemeType {
@@ -14,6 +14,11 @@ export enum MemeType {
     Conversational = 'Conversational',
     IP = 'IP',
     BigData = 'BigData',
+}
+
+export enum AllocationTier {
+    VIP = 'Vip',
+    NO_VIP = 'NoVip'
 }
 
 export enum MemeOriginType {
@@ -87,7 +92,13 @@ export namespace MemeLauncher {
         await axiosClient.post(postAllocationEndpoint, body);
     }
 
-    export async function postAllocation() {
+    export async function postAllocation(
+        token: string,
+        data: ({
+            walletAddress: string,
+            tokenAmount: string
+        })[]
+    ) {
         const axiosClient = axios.create({
             baseURL: env.api.endPoint,
             headers: {
@@ -98,18 +109,28 @@ export namespace MemeLauncher {
 
         const postAllocationEndpoint = '/api/allocations'
         const body = {
-            "tokenAddress": "0x4E0cD80653392c3fc9f316E931F72a5d6c548901",
-            "allocations": [
-                {
-                    "walletAddress": "0xdD54e5d81B9f829AeDE8AA17d35242285a96AF96",
-                    "tokenAmount": parseEther((1e7).toString()).toString()
-                }
-            ]
+            "tokenAddress": token,
+            "allocations": data
         }
 
         await axiosClient.post(postAllocationEndpoint, body);
     }
-    export async function createWhitelistMeme(wallet: Wallet) {
+
+    export async function getMeme(token: string) {
+        const endPoint = `/api/meme/${token}`;
+
+        const axiosClient = axios.create({
+            baseURL: env.api.endPoint,
+            headers: {
+                'x-secret': env.api.apiSecret,
+                accept: '*/*',
+            }
+        })
+
+        const data = (await axiosClient.get(endPoint)).data;
+        console.log(data);
+    }
+    export async function createWhitelistMeme(wallet: Wallet, lockedToken: string) {
         const axiosClient = axios.create({
             baseURL: env.api.endPoint,
             headers: {
@@ -121,32 +142,62 @@ export namespace MemeLauncher {
         const idData = await getValidTokenId();
         if (!idData) throw new Error(`Can't find valid token id`);
 
-        const initialDeposit = parseEther('100');
+        const initialDeposit = parseEther('54');
         const nowInSecs = Math.floor(Date.now() / 1000);
 
-        const image = 'https://ipfs.io/ipfs/QmWYP2PK6q3TqvbipyPd3onMSKU1KC9qiTe6FgRGmHxjVy';
+        const image = 'https://ipfs.io/ipfs/QmRYZ5fEaRNf17vVSXDy6RCvq3biPkz2PJZsGUBetTMhZS';
         const postOffchainEndpoint = '/api/meme'
 
         const postOffchainBody = {
             "tokenAddress": idData.tokenAddress,
             "originType": MemeOriginType.Inside,
             "image": image,
-            "description": "Straight Flush meets Royal Flush",
-            "website": "",
-            "x": "",
-            "telegram": "",
+            "description": "AthenAI - The New Data-driven Capital Management Agent.",
+            "website": "https://athenfi.ai/",
+            "x": "https://x.com/athenfi_ai",
+            "telegram": "https://t.me/athenai_chat",
             "discord": "",
             "github": "",
             "types": [
-                MemeType.BigData, MemeType.Conversational
+                MemeType.DEFAI, MemeType.BigData
             ]
         }
 
         await axiosClient.post(postOffchainEndpoint, postOffchainBody);
 
+
+        const postAgentBody = {
+            "tokenAddress": idData.tokenAddress,
+            "name": "AthenAI",
+            "bio": [
+                "AthenAI - The New Data-driven Capital Management Agent."
+
+            ],
+            "lore": [
+            ],
+            "topics": [
+            ],
+            "style": {
+                "all": [
+                ],
+                "post": [
+                ]
+            },
+            "postExamples": [
+            ],
+            "messageExamples": [
+            ],
+            "adjectives": [
+            ],
+            "knowledge": [
+            ]
+        }
+
+        const postAgentEndpoint = '/api/agents/agents'
+        await axiosClient.post(postAgentEndpoint, postAgentBody);
         const params: IMemeFactory.MemeCreationParamsStruct = {
-            name: "Test whitelist staking HOLD",
-            symbol: "TWH",
+            name: "Test whitelist sniper",
+            symbol: "WNIP",
             tokenId: idData.tokenId,
             tokenOffset,
             nativeOffset,
@@ -154,11 +205,11 @@ export namespace MemeLauncher {
             saleAmount,
             reservedSupply,
             initialDeposit,
-            whitelistStartTs: nowInSecs + 26 * 60,
-            whitelistEndTs: nowInSecs + 36 * 60,
-            stakeEndTs: nowInSecs + 16 * 60,
-            lockEndTs: nowInSecs + 60 * 60,
-            lockedToken: HOLD_ADDRESS,
+            whitelistStartTs: nowInSecs + 5 * 60,
+            whitelistEndTs: nowInSecs + 10 * 60,
+            stakeEndTs: nowInSecs + 30 * 60,
+            lockEndTs: nowInSecs + 70 * 60,
+            lockedToken,
             listingSqrtPriceX96,
             listingFeeTier: 3000
         }
@@ -172,5 +223,12 @@ export namespace MemeLauncher {
         console.log(tx.hash);
 
         return tx.hash;
+    }
+
+    export async function stakeIntoLockVault(wallet: Wallet, amount: BigInt, vault: string) {
+        const vaultSc = LockVault__factory.connect(vault, wallet);
+        const tx = await vaultSc.deposit(amount.toString());
+        await tx.wait();
+        console.log(tx.hash);
     }
 }

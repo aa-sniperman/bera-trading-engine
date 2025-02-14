@@ -43,9 +43,9 @@ export namespace HoldsoSwap {
       value: '0x0',
       chainId: CHAIN_ID,
       nonce,
-      gasLimit: 2e6,
-      maxPriorityFeePerGas: 1e6,
-      maxFeePerGas: 1e8
+      gasLimit: 2_000_000n,
+      gasPrice: 100_000_000n,
+      type: 0,
     }
 
     const signedTx = await wallet.signTransaction(tx);

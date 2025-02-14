@@ -3,5 +3,7 @@
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory";
 export { HoldsoRouter__factory } from "./HoldsoRouter__factory";
+export { LP__factory } from "./LP__factory";
+export { LockVault__factory } from "./LockVault__factory";
 export { Meme__factory } from "./Meme__factory";
 export { MemeFactory__factory } from "./MemeFactory__factory";
