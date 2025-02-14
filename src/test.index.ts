@@ -67,20 +67,6 @@ async function distribute(token: string, amounts: number[]) {
     // }
 }
 
-async function allocate() {
-    const data = allocations.map((a, i) => {
-        return {
-            walletAddress: buyerKeys[i].address,
-            tokenAmount: parseEther((a).toString()).toString()
-        }
-    })
-
-    data[data.length - 1].walletAddress = '0x02d8CC9783277f0096DD1ee76fdd192470Ade52a'
-
-    await MemeLauncher.postAllocation('0x434a924Bfd63D8aF7bD493b9EB6f0B47F429324e', data);
-
-}
-
 
 async function checkStakeTVL() {
     const holdPrice = 1.5 // lấy từ api;
@@ -95,6 +81,10 @@ async function checkStakeTVL() {
     const totalStaked = 13000; // lấy từ api
     const totalStakedTVL = tvl * totalStaked / Number(totalLP);
     console.log(totalStakedTVL);
+
+    const vault = '0x927Cc95fBa49E30784DA6F343fCeb77b547488c4';
+    const vaultBal = await lp.balanceOf(vault);
+    console.log(vaultBal);
 }
 
 async function sign() {
@@ -173,7 +163,7 @@ async function buy() {
     await MemeSwap.fastBuy(
         wallet,
         await wallet.getNonce(),
-        '0x807407Abbe1373995BeA41f55c32eCC2e24a1283',
+        '0x89FCA4db02D02136D0B374019FD65c578d8C76CA',
         parseEther('5000')
     )
 }
@@ -211,13 +201,13 @@ async function runAllSnipers(
     await dexSniper.batchBuy('0x2443c2be245A39bE641F45A701269039363D103E', 3000);
 }
 // launch().then();
-// buy().then();
-runAllSnipers(
-    '0x807407Abbe1373995BeA41f55c32eCC2e24a1283',
-    '0x2443c2be245A39bE641F45A701269039363D103E',
-    1739521035,
-    1739521335
-).then();
+checkStakeTVL().then();
+// runAllSnipers(
+//     '0x807407Abbe1373995BeA41f55c32eCC2e24a1283',
+//     '0x2443c2be245A39bE641F45A701269039363D103E',
+//     1739521035,
+//     1739521335
+// ).then();
 // allocate().then();
 // distribute(token, amounts).then();
 // main().then();

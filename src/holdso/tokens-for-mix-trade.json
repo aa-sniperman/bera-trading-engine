@@ -1,8 +1,8 @@
 {
-    "testnet": [
-        
-    ],
+    "testnet": [],
     "mainnet": [
-        "0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce"
+        "0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce",
+        "0x6969696969696969696969696969696969696969",
+        "0xe80e3b8D439A4c2271CB58076FF79bEB1998179E"
     ]
 }

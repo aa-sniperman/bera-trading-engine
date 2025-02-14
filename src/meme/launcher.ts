@@ -96,7 +96,8 @@ export namespace MemeLauncher {
         token: string,
         data: ({
             walletAddress: string,
-            tokenAmount: string
+            tokenAmount: string,
+            tier: AllocationTier
         })[]
     ) {
         const axiosClient = axios.create({
@@ -110,10 +111,11 @@ export namespace MemeLauncher {
         const postAllocationEndpoint = '/api/allocations'
         const body = {
             "tokenAddress": token,
-            "allocations": data
+            "allocations": data,
         }
 
-        await axiosClient.post(postAllocationEndpoint, body);
+        const res = await axiosClient.post(postAllocationEndpoint, body);
+        console.log(res.data)
     }
 
     export async function getMeme(token: string) {
@@ -196,8 +198,8 @@ export namespace MemeLauncher {
         const postAgentEndpoint = '/api/agents/agents'
         await axiosClient.post(postAgentEndpoint, postAgentBody);
         const params: IMemeFactory.MemeCreationParamsStruct = {
-            name: "Test whitelist sniper",
-            symbol: "WNIP",
+            name: "Staky",
+            symbol: "Staky",
             tokenId: idData.tokenId,
             tokenOffset,
             nativeOffset,
@@ -205,10 +207,10 @@ export namespace MemeLauncher {
             saleAmount,
             reservedSupply,
             initialDeposit,
-            whitelistStartTs: nowInSecs + 5 * 60,
-            whitelistEndTs: nowInSecs + 10 * 60,
-            stakeEndTs: nowInSecs + 30 * 60,
-            lockEndTs: nowInSecs + 70 * 60,
+            whitelistStartTs: nowInSecs + 10 * 60,
+            whitelistEndTs: nowInSecs + 20 * 60,
+            stakeEndTs: nowInSecs + 5 * 60,
+            lockEndTs: nowInSecs + 10 * 60,
             lockedToken,
             listingSqrtPriceX96,
             listingFeeTier: 3000

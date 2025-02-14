@@ -19,7 +19,7 @@ export namespace HoldsoMixTrade {
                 try {
 
                     const quoteBalance = await Token.getTokenBalance(wallet.address, HOLD_ADDRESS);
-                    const buyAmountPercent = getRandomInt(5, 7);
+                    const buyAmountPercent = getRandomInt(1, 2);
                     const buyAmount = quoteBalance * BigInt(buyAmountPercent) / 1000n;
 
                     console.log(`Buying with ${buyAmount}.....`);
