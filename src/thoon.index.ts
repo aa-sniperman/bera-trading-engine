@@ -36,7 +36,7 @@ async function main() {
     const volMaker = new VolumeMakerV2.Maker(makers.slice(50, 80), HOLD_ADDRESS, TokenConfig.THOON, {
         targetVol1h: 50000,
         minTradeSize: 20,
-        timeScale: 10,
+        timeScale: 2000,
         maxWalletsNum: 10,
         disableRebalancing: true
     })

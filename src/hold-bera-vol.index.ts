@@ -25,7 +25,7 @@ async function main() {
     // )
 
     const balances = await Token.getBalances(
-        makers.slice(0, 50).map(k => k.address),
+        makers.map(k => k.address),
         [HOLD_ADDRESS, WRAPPED_NATIVE, NATIVE],
         ['HOLD', 'WBERA', 'BERA']
     )
@@ -33,14 +33,14 @@ async function main() {
 
     // HoldsoMixTrade.mixSwapMultiWallets(makers.slice(0, 10).map(k => k.privateKey), 10);
 
-    // const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
-    //     targetVol1h: 50000,
-    //     minTradeSize: 10,
-    //     timeScale: 100,
-    //     maxWalletsNum: 30,
-    //     disableRebalancing: true
-    // })
-    // await volMaker.run();
+    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
+        targetVol1h: 50000,
+        minTradeSize: 20,
+        timeScale: 1000,
+        maxWalletsNum: 30,
+        disableRebalancing: true
+    })
+    await volMaker.run();
 }
 
 main().then();

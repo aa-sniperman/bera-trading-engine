@@ -96,7 +96,7 @@ export namespace MemeSniper {
                         fromBlock: this.latestBlock ?? latest?.number,
                         topics: [
                             ethers.id("MemeCreated(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,address)"),
-                            // ethers.zeroPadValue(this.creator, 32)
+                            ethers.zeroPadValue(BERAIS_FACTORY, 32)
                         ]
                     })
 
