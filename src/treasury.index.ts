@@ -8,7 +8,7 @@ import { Token } from './token';
 import { Keys } from './keys';
 import { fetchAccountSwapTransfers, reportClusterSwapTransfers, reportClusterTransfers } from './treasury-management/transfer-report';
 import { HoldsoSwap } from './holdso/swapper';
-import { parseEther } from 'ethers';
+import { formatEther, parseEther } from 'ethers';
 import { writeFileSync } from 'fs';
 
 async function reportAll() {
@@ -53,7 +53,7 @@ async function reportAll() {
 async function balances() {
     const volKeys = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
     const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
-    const balances = await Token.getBalances(volKeys.concat(middleKeys).map(k => k.address), ['0xb7a690dACFF7e2D31dcce0f2dE763253eA34900d'], ['THOON']);
+    const balances = await Token.getBalances(volKeys.concat(middleKeys).map(k => k.address), [WRAPPED_NATIVE], ['BERA']);
     console.log(balances);
 }
 
@@ -89,7 +89,7 @@ async function vol() {
     const allKeys = volKeys.concat(middleKeys);
     let quotePNL = 0;
     let totalFee = 0;
-    for (const config of Object.values(TokenConfig)) {
+    for (const config of [TokenConfig.BR]) {
         const vol = await reportVol(allKeys.map(k => k.address), config);
         console.log(vol);
         quotePNL += vol.quotePNL;
@@ -113,11 +113,23 @@ async function transfer() {
 async function audit() {
     const account = '0xBeC3A8EefA0255F1A2619C2F7fb43624Ba292AdA';
     const beraSwaps = await fetchAccountSwaps(account, TokenConfig.BERA.address);
-    const swapTxHashes = beraSwaps.swaps.sort((a: any, b: any) => Number(a.timestamp) - Number(b.timestamp)).map((s: any) => s.transaction.id);
-    // const {transfers} = await fetchAccountSwapTransfers(account, TokenConfig.BERA.address, [TokenConfig.BERA.pair])
-    // const transferTxHashes = transfers.sort((a: any, b: any) => Number(a.timeStamp) - Number(b.timeStamp)).map((t: any) => t.hash);
-    writeFileSync(`./src/accounting-data/${account}.swaps.json`, JSON.stringify(swapTxHashes));
-    // writeFileSync(`./src/accounting-data/${account}.transfers.json`, JSON.stringify(transferTxHashes));
+    const swapTxHashes = beraSwaps.swaps
+        .sort((a: any, b: any) => Number(a.timestamp) - Number(b.timestamp))
+        .map((s: any) => s.transaction.id);
+
+    const { transfers, receipts } = await fetchAccountSwapTransfers(account, TokenConfig.BERA.address, [TokenConfig.BERA.pair, HOLDSO_AGG_ADDRESS]);
+    const transferTxHashes = transfers
+        .sort((a: any, b: any) => Number(a.timeStamp) - Number(b.timeStamp))
+        .map((t: any) => t.hash);
+
+    const receiptTxHashes = receipts.map((r: any) => r.hash);
+
+    const totalBuy = beraSwaps.swaps.reduce((sum, s: any) => sum + Math.max(0, Number(s.amount1)), 0);
+    const totalSell = beraSwaps.swaps.reduce((sum, s: any) => sum - Math.min(0, Number(s.amount1)), 0);
+    const totalTransfer = transfers.reduce((sum, s: any) => sum + Number(formatEther(s.value)), 0);
+    const totalReceipt = receipts.reduce((sum, s: any) => sum + Number(formatEther(s.value)), 0);
+
+    console.log(totalBuy, totalSell, totalTransfer, totalReceipt);
 }
 
-vol().then();
+balances().then();

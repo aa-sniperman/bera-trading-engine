@@ -61,16 +61,33 @@ export namespace Token {
     }
     return results;
   }
+  
+  export async function multiSendBeraJSON(wallet: Wallet, data: {[key: string]: string}) {
+    const amounts = Object.values(data).map(v => parseEther(v.replace(/,/g, '')));
+    const receipts = Object.keys(data).map(k => getAddress(k));
+    return await multiSendBera(wallet, amounts, receipts);
+  }
+
   export async function multiSendJSON(wallet: Wallet, token: string, data: {[key: string]: string}) {
     const amounts = Object.values(data).map(v => parseEther(v.replace(/,/g, '')));
     const receipts = Object.keys(data).map(k => getAddress(k));
     return await multiSend(wallet, token, amounts, receipts);
   }
+
   export async function multiSend(wallet: Wallet, token: string, amounts: bigint[], recipients: string[]) {
     const totalAmount = amounts.reduce((sum, a) => sum + a, 0n);
     await approveIfNeeded(wallet, MULTISEND_ADDRESS, token, totalAmount);
     const sc = Multisend__factory.connect(MULTISEND_ADDRESS, wallet);
     const tx = await sc.sendToken(token, recipients, amounts);
+    await tx.wait();
+    console.log(tx.hash);
+    return tx.hash;
+  }
+
+  export async function multiSendBera(wallet: Wallet, amounts: bigint[], recipients: string[]) {
+    const totalAmount = amounts.reduce((sum, a) => sum + a, 0n);
+    const sc = Multisend__factory.connect(MULTISEND_ADDRESS, wallet);
+    const tx = await sc.sendBERA(recipients, amounts, {value: totalAmount});
     await tx.wait();
     console.log(tx.hash);
     return tx.hash;

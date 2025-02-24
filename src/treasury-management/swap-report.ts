@@ -37,7 +37,7 @@ async function fetchSwapsInRange(account: string, tokenAddress: string, startTim
 
 export async function fetchAccountSwaps(account: string, tokenAddress: string) {
     const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-    const chunkSize =  24 * 60 * 60; // 1 day per chunk
+    const chunkSize =  6 * 60 * 60; // 1 day per chunk
 
     let swaps: any[] = [];
     let startTime = now - 16 * 24 * 60 * 60; // 60 days ago

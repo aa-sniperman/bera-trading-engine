@@ -3,7 +3,7 @@ import { Keys } from "./keys";
 import { MemeSniper } from "./meme/sniper";
 import { HoldSoSniper } from "./holdso/sniper";
 import { Token } from "./token";
-import { HOLD_ADDRESS, NATIVE, PROVIDER } from "./constants";
+import { HOLD_ADDRESS, NATIVE, PROVIDER, TokenConfig } from "./constants";
 import { env } from "./configs";
 import { HoldsoMixTrade } from "./holdso/mixswap";
 import { MemeSwap } from "./meme/swap";
@@ -14,7 +14,7 @@ import outsideSnipers from "./outside-snipers.json";
 import { MemeLauncher } from "./meme/launcher";
 import { sleep } from "./utils";
 
-const buyerKeys = require('src/secrets/bb/buyers.json') as Keys.WalletKey[]
+const buyerKeys = require('src/secrets/henlo/sniper-keys.json') as Keys.WalletKey[]
 const sniperKeys = buyerKeys.slice(0, 10);
 const publicSniperKeys = buyerKeys.slice(20, 30);
 const dexSniperKeys = buyerKeys.slice(10, 15);
@@ -166,17 +166,17 @@ async function mix() {
 }
 
 async function sell() {
-    const wallet = new Wallet(buyerKeys[0].privateKey, PROVIDER);
+    const wallet = new Wallet(buyerKeys[9].privateKey, PROVIDER);
     await HoldsoSwap.executeSwap(wallet.privateKey, {
-        tokenIn: '0x3262336B903F8DeCB1d9c9259138065d6c6E2e6F',
+        tokenIn: TokenConfig.HENLO.address,
         tokenOut: HOLD_ADDRESS,
         fee: 3000,
         recipient: wallet.address,
         deadline: Date.now() + 60000,
-        amountIn: parseEther((1e6).toString()),
+        amountIn: parseEther((3_500_000).toString()),
         amountOutMinimum: 0,
         sqrtPriceLimitX96: 0
     })
 }
 
-launchWl().then();
+sell().then();
