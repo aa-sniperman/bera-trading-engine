@@ -51,13 +51,13 @@ export namespace MemeSniper {
             do {
                 try {
                     const hash =
-                        
-                    await MemeSwap.fastBuy(
-                        wallet,
-                        nonce,
-                        pump,
-                        amount
-                    )
+
+                        await MemeSwap.fastBuy(
+                            wallet,
+                            nonce,
+                            pump,
+                            amount
+                        )
                     console.log(hash)
                     success = true;
                 } catch (err) {
@@ -106,6 +106,97 @@ export namespace MemeSniper {
                         const creation = creations[0]!;
                         console.log(`Detected new token: ${creation.token}. Sniping.....`)
                         this.batchBuy(creation.pump);
+
+                        // turn on Hold.so sniper
+                        await this.dexSniper.run(creation.pump, creation.token, creation.blockNumber);
+
+                        console.log('-------------------------')
+                        console.log(creation.token);
+                        console.log('-------------------------')
+                        return;
+                    }
+
+                    if (latest) this.latestBlock = latest.number;
+
+                } catch (err) {
+                    console.log(err);
+                }
+
+                await sleep(100);
+            }
+        }
+    }
+
+    export class SniperV2 {
+        private signedTxs: string[];
+        constructor(
+            private readonly wallets: Wallet[],
+            private readonly amounts: bigint[],
+            private readonly token: string,
+            private readonly pump: string,
+            private readonly dexSniper: HoldSoSniper.Sniper,
+            private latestBlock?: number
+        ) {
+
+        }
+
+        async preApprove() {
+            await Promise.all(
+                this.wallets.map(async (wallet, i) => {
+                    await Token.approveIfNeeded(wallet, this.pump, HOLD_ADDRESS, this.amounts[i])
+                })
+            )
+        }
+        async setup() {
+            const nonces = await Promise.all(
+                this.wallets.map(async (wallet) => {
+                    return await wallet.getNonce("pending");
+                })
+            )
+
+            this.signedTxs = [];
+            for (let i = 0; i < this.wallets.length; i++) {
+                const wallet = this.wallets[i];
+                const nonce = nonces[i];
+                const amount = this.amounts[i];
+                const signedTx = await MemeSwap.prepareForBuy(wallet, nonce, this.pump, amount);
+                this.signedTxs.push(signedTx);
+            }
+        }
+
+        async batchBuy() {
+            await Promise.all(this.signedTxs.map(async (tx) => {
+                const res = await PROVIDER.broadcastTransaction(tx);
+                console.log(res.hash)
+            }))
+        }
+
+        async run() {
+            await this.preApprove();
+            await this.setup();
+
+            await this.dexSniper.setup();
+
+            while (true) {
+                try {
+                    const latest = await PROVIDER.getBlock('latest');
+
+                    console.log(this.latestBlock);
+                    const logs = await PROVIDER.getLogs({
+                        address: BERAIS_FACTORY,
+                        fromBlock: this.latestBlock ?? latest?.number,
+                        topics: [
+                            ethers.id("MemeCreated(address,address,address,uint256,uint256,uint256,uint256,uint256,uint256,address)"),
+                            ethers.zeroPadValue(BERAIS_FACTORY, 32)
+                        ]
+                    })
+
+                    const creations = logs.map(log => extractTokenCreation(log)).filter(c => c !== undefined && c.token === this.token);
+                    console.log(creations);
+                    if (creations.length > 0) {
+                        const creation = creations[0]!;
+                        console.log(`Detected new token: ${creation.token}. Sniping.....`)
+                        this.batchBuy();
 
                         // turn on Hold.so sniper
                         await this.dexSniper.run(creation.pump, creation.token, creation.blockNumber);
@@ -193,6 +284,7 @@ export namespace MemeSniper {
 
     export class PublicSniper {
         private signedTxs: string[] = [];
+        private wlSignedTxs: string[] = [];
 
         constructor(
             private readonly wallets: Wallet[],
@@ -216,7 +308,9 @@ export namespace MemeSniper {
                 const nonce = nonces[i];
                 const amount = this.amountIn[i];
                 const signedTx = await MemeSwap.prepareForBuy(wallet, nonce, this.pump, amount);
+                const wlSignedTx = await MemeSwap.prepareForWhitelistBuy(wallet, nonce, this.pump, amount);
                 this.signedTxs.push(signedTx);
+                this.wlSignedTxs.push(wlSignedTx);
             }
         }
 
@@ -232,28 +326,47 @@ export namespace MemeSniper {
             }))
         }
 
+        async batchBuyWl() {
+            await Promise.all(this.wlSignedTxs.map(async (tx) => {
+                try {
+                    const res = await PROVIDER.broadcastTransaction(tx);
+                    console.log(res.hash)
+                } catch (err) { }
+            }))
+        }
         async batchBuy() {
             await Promise.all(this.signedTxs.map(async (tx) => {
-                const res = await PROVIDER.broadcastTransaction(tx);
-                console.log(res.hash)
+                try {
+                    const res = await PROVIDER.broadcastTransaction(tx);
+                    console.log(res.hash)
+                } catch (err) {
+                    console.log(err);
+                }
             }))
         }
 
         async run() {
+            let boughtWl = false;
             await this.preApprove();
             await this.prepare();
             await this.dexSniper.setup();
 
             while (true) {
-                const block = await PROVIDER.getBlock('latest');
-                const ts = block!.timestamp;
+                const ts = Math.floor(Date.now() / 1000);
                 console.log('pl ts: ', ts, this.whitelistEndTs)
+                if (ts < this.whitelistEndTs && ts >= this.whitelistEndTs - 5 && !boughtWl) {
+                    console.log(`Whitelist round about to end!. Sniping...`)
+                    await this.batchBuyWl();
+                    boughtWl = true;
+                }
                 if (ts >= this.whitelistEndTs) {
                     console.log(`Whitelist round ended!. Sniping...`)
-                    await this.batchBuy();
-                    await this.dexSniper.run(this.pump, this.token, block!.number);
+                    this.batchBuy();
+
+                    await this.dexSniper.run(this.pump, this.token, (await PROVIDER.getBlock('latest'))!.number - 5);
                     return;
                 }
+                await sleep(100);
             }
         }
     }

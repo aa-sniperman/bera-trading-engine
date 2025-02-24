@@ -1,12 +1,15 @@
 import { createObjectCsvWriter } from 'csv-writer';
 import { HOLD_ADDRESS, NATIVE, TokenConfig, WRAPPED_NATIVE } from './constants';
 import { reportSupply } from './treasury-management/supply-report';
-import { reportClusterSwaps, reportVol } from './treasury-management/swap-report';
+import { fetchAccountSwaps, reportClusterSwaps, reportVol } from './treasury-management/swap-report';
 import { sleep } from './utils';
 import inventory from "./treasury-management/address-list.json";
 import { Token } from './token';
 import { Keys } from './keys';
-import { reportClusterSwapTransfers, reportClusterTransfers } from './treasury-management/transfer-report';
+import { fetchAccountSwapTransfers, reportClusterSwapTransfers, reportClusterTransfers } from './treasury-management/transfer-report';
+import { HoldsoSwap } from './holdso/swapper';
+import { parseEther } from 'ethers';
+import { writeFileSync } from 'fs';
 
 async function reportAll() {
     const data: { [key: string]: any } = {};
@@ -47,6 +50,39 @@ async function reportAll() {
     console.log('CSV file has been written successfully.');
 }
 
+async function balances() {
+    const volKeys = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
+    const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
+    const balances = await Token.getBalances(volKeys.concat(middleKeys).map(k => k.address), ['0xb7a690dACFF7e2D31dcce0f2dE763253eA34900d'], ['THOON']);
+    console.log(balances);
+}
+
+async function sellAll() {
+    const volKeys = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
+    const balances = await Token.getRawBalances(volKeys.map(k => k.address), Object.values(TokenConfig).map(v => v.address));
+    for (const config of Object.values(TokenConfig)) {
+        await Promise.all(volKeys.map(async (key) => {
+            try {
+                await HoldsoSwap.executeSwap(
+                    key.privateKey,
+                    {
+                        tokenIn: config.address,
+                        tokenOut: HOLD_ADDRESS,
+                        fee: 3000,
+                        recipient: key.address,
+                        deadline: Date.now() + 60000,
+                        amountIn: balances[key.address][config.address],
+                        amountOutMinimum: 0n,
+                        sqrtPriceLimitX96: 0n
+                    }
+                )
+            } catch (err) {
+
+            }
+        }))
+    }
+}
+
 async function vol() {
     const volKeys = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
     const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
@@ -68,10 +104,20 @@ async function transfer() {
     const allKeys = volKeys.concat(middleKeys);
     const data = await reportClusterSwapTransfers(
         HOLD_ADDRESS,
-        volKeys.slice(0, 100).map(k => k.address),
-        [TokenConfig.THOON.pair]
+        allKeys.map(k => k.address),
+        Object.values(TokenConfig).map(k => k.pair)
     );
     console.log(data);
+}
+
+async function audit() {
+    const account = '0xBeC3A8EefA0255F1A2619C2F7fb43624Ba292AdA';
+    const beraSwaps = await fetchAccountSwaps(account, TokenConfig.BERA.address);
+    const swapTxHashes = beraSwaps.swaps.sort((a: any, b: any) => Number(a.timestamp) - Number(b.timestamp)).map((s: any) => s.transaction.id);
+    // const {transfers} = await fetchAccountSwapTransfers(account, TokenConfig.BERA.address, [TokenConfig.BERA.pair])
+    // const transferTxHashes = transfers.sort((a: any, b: any) => Number(a.timeStamp) - Number(b.timeStamp)).map((t: any) => t.hash);
+    writeFileSync(`./src/accounting-data/${account}.swaps.json`, JSON.stringify(swapTxHashes));
+    // writeFileSync(`./src/accounting-data/${account}.transfers.json`, JSON.stringify(transferTxHashes));
 }
 
 transfer().then();

@@ -23,7 +23,6 @@ const pumps: string[] = fs.readFileSync(pumpPath, 'utf-8').split(/\r?\n/);
 const token = HOLD_ADDRESS;
 // const amounts = randomArrayWithSum(30, 30 * 1e7, 0.9e7, 1.1e7);
 
-const lpHolderKeys = (require('src/secrets/bull/lp-stakers.json') as Keys.WalletKey[]).slice(0, amounts.length);
 const buyerKeys = require('src/secrets/bb/buyers.json') as Keys.WalletKey[]
 const sniperKeys = buyerKeys.slice(0, 5);
 const publicSniperKeys = buyerKeys.slice(5, 10);
@@ -118,15 +117,6 @@ async function snipe(pump: string) {
     }
 }
 
-async function launch() {
-    const pk = env.keys.pk;
-
-    const wallet = new Wallet(pk, PROVIDER);
-    await MemeLauncher.createWhitelistMeme(
-        wallet,
-        HOLD_ADDRESS
-    )
-}
 async function main() {
     const pk = env.keys.pk;
 
@@ -200,8 +190,15 @@ async function runAllSnipers(
     await dexSniper.setup();
     await dexSniper.batchBuy('0x2443c2be245A39bE641F45A701269039363D103E', 3000);
 }
+async function multisend(){
+    const makers = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
+    const wallet = new Wallet(makers[0].privateKey, PROVIDER);
+    const amounts = [1000n, 1100n, 1200n];
+    const recipients = makers.slice(1, 4).map(k => k.address);
+    await Token.multiSend(wallet, token, amounts, recipients);
+}
 // launch().then();
-checkStakeTVL().then();
+multisend().then();
 // runAllSnipers(
 //     '0x807407Abbe1373995BeA41f55c32eCC2e24a1283',
 //     '0x2443c2be245A39bE641F45A701269039363D103E',

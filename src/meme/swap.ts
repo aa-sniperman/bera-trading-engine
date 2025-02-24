@@ -1,7 +1,7 @@
 import { ethers, getAddress, parseEther, solidityPackedKeccak256, TransactionRequest, Wallet } from "ethers";
 import { env } from "src/configs";
 import { CHAIN_ID, HOLD_ADDRESS, BERAIS_FACTORY, PROVIDER } from "src/constants";
-import { ERC20__factory, Meme__factory, MemeFactory__factory } from "src/contracts";
+import { ERC20__factory, Meme__factory, MemeFactory__factory, MemeFactoryTestnet__factory } from "src/contracts";
 import { Token } from "src/token";
 
 export namespace MemeSwap {
@@ -36,9 +36,16 @@ export namespace MemeSwap {
         return signature;
     }
 
+    export async function getPumpTest(tokenId: string) {
+        const factory = MemeFactoryTestnet__factory.connect(BERAIS_FACTORY, PROVIDER);
+        const pump = await factory.getPumpContractAddress(tokenId);
+
+        return pump;
+    }
     export async function getPump(token: string) {
         const factory = MemeFactory__factory.connect(BERAIS_FACTORY, PROVIDER);
         const pump = await factory.getPumpContractAddress(token);
+
         return pump;
     }
     export async function buy(
@@ -70,6 +77,35 @@ export namespace MemeSwap {
         return tx.hash;
     }
 
+    export async function fastBuyWithoutApproval(
+        wallet: Wallet,
+        nonce: number,
+        pump: string,
+        amountIn: bigint,
+    ) {
+        const data = Meme__factory.createInterface().encodeFunctionData(
+            "swapExactIn",
+            [
+                amountIn,
+                0n,
+                true,
+                wallet.address
+            ]
+        );
+        const tx: TransactionRequest = {
+            from: wallet.address,
+            to: pump,
+            gasLimit: 1_000_000n,
+            gasPrice: 100_000_000n,
+            data,
+            nonce,
+            type: 0,
+            chainId: BigInt(CHAIN_ID)
+        }
+        const signedTx = await wallet.signTransaction(tx);
+        const receipt = await wallet.provider!.broadcastTransaction(signedTx);
+        return receipt.hash;
+    }
     export async function fastBuy(
         wallet: Wallet,
         nonce: number,

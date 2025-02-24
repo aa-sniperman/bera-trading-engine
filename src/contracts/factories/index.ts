@@ -7,3 +7,5 @@ export { LP__factory } from "./LP__factory";
 export { LockVault__factory } from "./LockVault__factory";
 export { Meme__factory } from "./Meme__factory";
 export { MemeFactory__factory } from "./MemeFactory__factory";
+export { MemeFactoryTestnet__factory } from "./MemeFactoryTestnet__factory";
+export { Multisend__factory } from "./Multisend__factory";

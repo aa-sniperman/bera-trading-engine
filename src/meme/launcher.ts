@@ -132,7 +132,17 @@ export namespace MemeLauncher {
         const data = (await axiosClient.get(endPoint)).data;
         console.log(data);
     }
-    export async function createWhitelistMeme(wallet: Wallet, lockedToken: string) {
+    export async function createWhitelistMeme(
+        wallet: Wallet, 
+        lockedToken: string, 
+        tokenId: string, 
+        tokenAddress: string,
+    timeline: {
+        whitelistStartTs: number,
+        whitelistEndTs: number,
+        stakeEndTs: number,
+        lockEndTs: number
+    }) {
         const axiosClient = axios.create({
             baseURL: env.api.endPoint,
             headers: {
@@ -141,17 +151,14 @@ export namespace MemeLauncher {
                 'wallet-address': wallet.address
             }
         })
-        const idData = await getValidTokenId();
-        if (!idData) throw new Error(`Can't find valid token id`);
 
         const initialDeposit = parseEther('54');
-        const nowInSecs = Math.floor(Date.now() / 1000);
 
         const image = 'https://ipfs.io/ipfs/QmRYZ5fEaRNf17vVSXDy6RCvq3biPkz2PJZsGUBetTMhZS';
         const postOffchainEndpoint = '/api/meme'
 
         const postOffchainBody = {
-            "tokenAddress": idData.tokenAddress,
+            "tokenAddress": tokenAddress,
             "originType": MemeOriginType.Inside,
             "image": image,
             "description": "AthenAI - The New Data-driven Capital Management Agent.",
@@ -169,7 +176,7 @@ export namespace MemeLauncher {
 
 
         const postAgentBody = {
-            "tokenAddress": idData.tokenAddress,
+            "tokenAddress": tokenAddress,
             "name": "AthenAI",
             "bio": [
                 "AthenAI - The New Data-driven Capital Management Agent."
@@ -200,17 +207,17 @@ export namespace MemeLauncher {
         const params: IMemeFactory.MemeCreationParamsStruct = {
             name: "Staky",
             symbol: "Staky",
-            tokenId: idData.tokenId,
+            tokenId: tokenId,
             tokenOffset,
             nativeOffset,
             totalSupply,
             saleAmount,
             reservedSupply,
             initialDeposit,
-            whitelistStartTs: nowInSecs + 10 * 60,
-            whitelistEndTs: nowInSecs + 20 * 60,
-            stakeEndTs: nowInSecs + 5 * 60,
-            lockEndTs: nowInSecs + 10 * 60,
+            whitelistStartTs: timeline.whitelistStartTs,
+            whitelistEndTs: timeline.whitelistEndTs,
+            stakeEndTs: timeline.stakeEndTs,
+            lockEndTs: timeline.lockEndTs,
             lockedToken,
             listingSqrtPriceX96,
             listingFeeTier: 3000
@@ -222,6 +229,98 @@ export namespace MemeLauncher {
 
         const tx = await factoryContract.createMeme(params);
         await tx.wait();
+        console.log(tx.hash);
+
+        return tx.hash;
+    }
+
+    export async function createMeme(wallet: Wallet, tokenId: string, tokenAddress: string) {
+        const axiosClient = axios.create({
+            baseURL: env.api.endPoint,
+            headers: {
+                'x-secret': env.api.apiSecret,
+                accept: '*/*',
+                'wallet-address': wallet.address
+            }
+        })
+
+        const initialDeposit = parseEther('54');
+
+        const image = 'https://ipfs.io/ipfs/QmRYZ5fEaRNf17vVSXDy6RCvq3biPkz2PJZsGUBetTMhZS';
+        const postOffchainEndpoint = '/api/meme'
+
+        const postOffchainBody = {
+            "tokenAddress": tokenAddress,
+            "originType": MemeOriginType.Inside,
+            "image": image,
+            "description": "AthenAI - The New Data-driven Capital Management Agent.",
+            "website": "https://athenfi.ai/",
+            "x": "https://x.com/athenfi_ai",
+            "telegram": "https://t.me/athenai_chat",
+            "discord": "",
+            "github": "",
+            "types": [
+                MemeType.DEFAI, MemeType.BigData
+            ]
+        }
+
+        await axiosClient.post(postOffchainEndpoint, postOffchainBody);
+
+
+        const postAgentBody = {
+            "tokenAddress": tokenAddress,
+            "name": "AthenAI",
+            "bio": [
+                "AthenAI - The New Data-driven Capital Management Agent."
+
+            ],
+            "lore": [
+            ],
+            "topics": [
+            ],
+            "style": {
+                "all": [
+                ],
+                "post": [
+                ]
+            },
+            "postExamples": [
+            ],
+            "messageExamples": [
+            ],
+            "adjectives": [
+            ],
+            "knowledge": [
+            ]
+        }
+
+        const postAgentEndpoint = '/api/agents/agents'
+        await axiosClient.post(postAgentEndpoint, postAgentBody);
+        const params: IMemeFactory.MemeCreationParamsStruct = {
+            name: "Staky",
+            symbol: "Staky",
+            tokenId: tokenId,
+            tokenOffset,
+            nativeOffset,
+            totalSupply,
+            saleAmount,
+            reservedSupply,
+            initialDeposit,
+            whitelistStartTs: 0,
+            whitelistEndTs: 0,
+            stakeEndTs: 0,
+            lockEndTs: 0,
+            lockedToken: ZeroAddress,
+            listingSqrtPriceX96,
+            listingFeeTier: 3000
+        }
+
+        await approveHoldIfNeeded(wallet, creationFee + initialDeposit);
+
+        const factoryContract = MemeFactory__factory.connect(BERAIS_FACTORY, wallet);
+
+        const tx = await factoryContract.createMeme(params);
+        // await tx.wait();
         console.log(tx.hash);
 
         return tx.hash;

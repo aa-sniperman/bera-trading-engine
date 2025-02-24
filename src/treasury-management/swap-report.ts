@@ -2,17 +2,17 @@ import axios from "axios";
 import accounts from "./address-list.json";
 import { TokenConfigInfo } from "src/constants";
 
-export async function fetchAccountSwaps(
-    account: string,
-    tokenAddress: string
-) {
-    const endpoint = 'https://subgraph.hold.so/bera/subgraphs/name/bera/swap';
+const endpoint = 'https://subgraph.hold.so/bera/subgraphs/name/bera/swap';
+
+async function fetchSwapsInRange(account: string, tokenAddress: string, startTime: number, endTime: number) {
     const query = `
     query MyQuery {
       swaps(
         where: {
           origin: "${account.toLowerCase()}",
-          token0: "${tokenAddress.toLowerCase()}"
+          token0: "${tokenAddress.toLowerCase()}",
+          timestamp_gte: ${startTime},
+          timestamp_lt: ${endTime}
         }
       ) {
         amountUSD
@@ -28,43 +28,49 @@ export async function fetchAccountSwaps(
 
     try {
         const response = await axios.post(endpoint, { query });
-        const swaps = response.data.data.swaps;
-
-        // Calculate total volume for this recipient
-        const totalVolumeUSD = swaps.reduce((total: number, swap: any) => {
-            return total + parseFloat(swap.amountUSD);
-        }, 0);
-
-        const totalVolumeQuoteBuy = swaps.reduce((total: number, swap: any) => {
-            const amount = parseFloat(swap.amount1);
-            return total + (amount > 0 ? amount : 0);
-        }, 0);
-
-        const totalVolumeQuoteSell = swaps.reduce((total: number, swap: any) => {
-            const amount = parseFloat(swap.amount1);
-            return total + (amount < 0 ? -amount : 0);
-        }, 0);
-
-        const totalVolumeBaseBuy = swaps.reduce((total: number, swap: any) => {
-            const amount = parseFloat(swap.amount0);
-            return total + (amount < 0 ? -amount : 0);
-        }, 0);
-
-        const totalVolumeBaseSell = swaps.reduce((total: number, swap: any) => {
-            const amount = parseFloat(swap.amount0);
-            return total + (amount > 0 ? amount : 0);
-        }, 0);
-
-        return { account, totalVolumeUSD, totalVolumeQuoteBuy, totalVolumeQuoteSell, totalVolumeBaseBuy, totalVolumeBaseSell };
+        return response.data.data.swaps || [];
     } catch (error) {
-        console.error(`Error querying for recipient ${account}:`, error);
-        return {
-            account, totalVolumeUSD: 0, totalVolumeQuoteBuy: 0, totalVolumeQuoteSell: 0,
-            totalVolumeBaseBuy: 0, totalVolumeBaseSell: 0,
-            error: (error as Error).message
-        };
+        console.error(`Error fetching swaps from ${startTime} to ${endTime}:`, error);
+        return [];
     }
 }
+
+export async function fetchAccountSwaps(account: string, tokenAddress: string) {
+    const now = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+    const chunkSize =  24 * 60 * 60; // 1 day per chunk
+
+    let swaps: any[] = [];
+    let startTime = now - 16 * 24 * 60 * 60; // 60 days ago
+    const seenTransactionIds = new Set<string>();
+
+    while (startTime < now) {
+        const endTime = Math.min(startTime + chunkSize, now);
+        const chunkSwaps = await fetchSwapsInRange(account, tokenAddress, startTime, endTime);
+
+        for (const swap of chunkSwaps) {
+            if (!seenTransactionIds.has(swap.transaction.id)) {
+                seenTransactionIds.add(swap.transaction.id);
+                swaps.push(swap);
+            }
+        }
+
+        startTime = endTime;
+    }
+
+    // Sort swaps by timestamp (ascending order)
+    swaps.sort((a, b) => Number(a.timestamp) - Number(b.timestamp));
+
+    // Aggregate results
+    const totalVolumeUSD = swaps.reduce((total, swap) => total + parseFloat(swap.amountUSD), 0);
+    const totalVolumeQuoteBuy = swaps.reduce((total, swap) => total + Math.max(0, parseFloat(swap.amount1)), 0);
+    const totalVolumeQuoteSell = swaps.reduce((total, swap) => total + Math.max(0, -parseFloat(swap.amount1)), 0);
+    const totalVolumeBaseBuy = swaps.reduce((total, swap) => total + Math.max(0, -parseFloat(swap.amount0)), 0);
+    const totalVolumeBaseSell = swaps.reduce((total, swap) => total + Math.max(0, parseFloat(swap.amount0)), 0);
+
+    return { account, totalVolumeUSD, totalVolumeQuoteBuy, totalVolumeQuoteSell, totalVolumeBaseBuy, totalVolumeBaseSell, swaps };
+}
+
+
 
 export async function reportVol(baseAccounts: string[], tokenConfig: TokenConfigInfo) {
     const accountData = await Promise.all(baseAccounts.map(account => fetchAccountSwaps(

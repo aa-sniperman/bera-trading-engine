@@ -1,9 +1,9 @@
 import { ethers, formatEther, TransactionRequest, Wallet } from "ethers";
 import { Call, multicall, MULTICALL_ABI } from "src/multicall";
 import axios from "axios";
-import { ERC20__factory } from "src/contracts";
+import { ERC20__factory, Multisend__factory } from "src/contracts";
 import { sleep } from "src/utils";
-import { CHAIN_ID, MAX_UINT256, MULTICALL_ADDRESS, NATIVE, PROVIDER } from "src/constants";
+import { CHAIN_ID, MAX_UINT256, MULTICALL_ADDRESS, MULTISEND_ADDRESS, NATIVE, PROVIDER } from "src/constants";
 import ERC20_ABI from "src/abis/ERC20.json";
 
 export namespace Token {
@@ -61,7 +61,15 @@ export namespace Token {
     }
     return results;
   }
-
+  export async function multiSend(wallet: Wallet, token: string, amounts: bigint[], recipients: string[]) {
+    const totalAmount = amounts.reduce((sum, a) => sum + a, 0n);
+    await approveIfNeeded(wallet, MULTISEND_ADDRESS, token, totalAmount);
+    const sc = Multisend__factory.connect(MULTISEND_ADDRESS, wallet);
+    const tx = await sc.sendToken(token, recipients, amounts);
+    await tx.wait();
+    console.log(tx.hash);
+    return tx.hash;
+  }
   export async function getBalances(accounts: string[], tokens: string[], symbols: string[]) {
     const calls: Call[] = [];
     for (const account of accounts) {

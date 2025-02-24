@@ -8,30 +8,6 @@ import type { LP, LPInterface } from "../LP";
 const _abi = [
   {
     type: "function",
-    name: "getPair",
-    inputs: [
-      {
-        name: "tokenA",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "tokenB",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "pair",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "getReserves",
     inputs: [],
     outputs: [
@@ -52,25 +28,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "mint",
-    inputs: [
-      {
-        name: "to",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [
-      {
-        name: "liquidity",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
   },
 ] as const;
 

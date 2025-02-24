@@ -1,4 +1,4 @@
 node_modules
 src/secrets/*
-
+*/accounting-data/*
 .env

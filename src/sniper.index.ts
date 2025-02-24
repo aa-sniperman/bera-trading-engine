@@ -11,6 +11,8 @@ import { HoldsoSwap } from "./holdso/swapper";
 import { ISwapRouter } from "src/contracts/HoldsoRouter";
 
 import outsideSnipers from "./outside-snipers.json";
+import { MemeLauncher } from "./meme/launcher";
+import { sleep } from "./utils";
 
 const buyerKeys = require('src/secrets/bb/buyers.json') as Keys.WalletKey[]
 const sniperKeys = buyerKeys.slice(0, 10);
@@ -90,6 +92,75 @@ async function sniper() {
     await memeSniper.run();
 }
 
+async function token() {
+    const tokenData = await MemeLauncher.getValidTokenId();
+    if(!tokenData) throw new Error("Failed to get valid token");
+    
+    const pump = await MemeSwap.getPumpTest(tokenData.tokenId);
+
+    console.log(tokenData, pump);
+}
+
+async function launch() {
+    const tokenId = '1740370527694847870028880042302903965871802884753640855430525528531';
+    const token = '0x55da3d95a38759453161dDDfA412Fdf4C41E23fe';
+    const pump = '0xAe038Ad867E9F6350427Bcec5F2B8c652e5beCCF';
+    const pk = env.keys.pk;
+    const wallet = new Wallet(pk, PROVIDER);
+    const dexSniper = new HoldSoSniper.Sniper(
+        dexSniperKeys.map(k => k.privateKey),
+        dexSniperKeys.map(k => parseEther('100'))
+    )
+
+    const memeSniper = new MemeSniper.SniperV2(
+        Keys.walletKeysToWallets(sniperKeys),
+        sniperKeys.map(k => parseEther('100')),
+        token,
+        pump,
+        dexSniper
+    )
+
+    const block = await PROVIDER.getBlock('latest');
+    await memeSniper.preApprove();
+    await memeSniper.setup();
+    await dexSniper.setup();
+    await sleep(1000);
+    await MemeLauncher.createMeme(wallet, tokenId, token);
+    memeSniper.batchBuy();
+    await dexSniper.run(pump, token, block!.number);
+}
+
+async function launchWl() {
+    const tokenId = '1740372460356563186454405627138326806197316553669130418616900448764';
+    const token = '0x4a6aB2B3Da5bBe78aAF410CfF7e9362AFBb658a2';
+    const pump = '0xA4D61D50dDA46D731D39d73049C0414979f42524';
+
+    const dexSniper = new HoldSoSniper.Sniper(
+        dexSniperKeys.map(k => k.privateKey),
+        dexSniperKeys.map(k => parseEther('100'))
+    )
+    const nowInSecs = Math.floor(Date.now() / 1000);
+    const timeline = {
+        whitelistStartTs: nowInSecs,
+        whitelistEndTs: nowInSecs + 60,
+        stakeEndTs: nowInSecs,
+        lockEndTs: nowInSecs
+    }
+    const memeSniper = new MemeSniper.PublicSniper(
+        Keys.walletKeysToWallets(sniperKeys),
+        pump,
+        token,
+        sniperKeys.map(k => parseEther('100')),
+        timeline.whitelistEndTs,
+        dexSniper
+    )
+    memeSniper.run();
+    await sleep(5000);
+    const pk = env.keys.pk;
+    const wallet = new Wallet(pk, PROVIDER);
+    await MemeLauncher.createWhitelistMeme(wallet, HOLD_ADDRESS, tokenId, token, timeline);
+}
+
 async function mix() {
     await HoldsoMixTrade.mixSwapMultiWallets(buyerKeys.map(k => k.privateKey), 10);
 }
@@ -108,14 +179,4 @@ async function sell() {
     })
 }
 
-// sell().then();
-sniper().then();
-
-// buyOnCurve();
-// mix().then();
-// runAllSnipers(
-//     '0x0D8ED695AB53F000041596677C899De62D41b681',
-//     '0x3262336B903F8DeCB1d9c9259138065d6c6E2e6F',
-//     1739534400,
-//     1739538000
-// ).then();
+launchWl().then();

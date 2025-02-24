@@ -3,6 +3,26 @@ import { formatEther } from "ethers";
 import { TokenConfigInfo } from "src/constants";
 import { writeFileSync } from "fs";
 
+export async function fetchAccountSwapTransfers(account: string, token: string, dexAddresses: string[]) {
+    const data = await TokenStats.extractERC20Transfers({
+        token,
+        address: account
+    })
+
+    const transfers = data.filter(t =>
+        t.from.toLowerCase() === account.toLowerCase() &&
+        dexAddresses.map(a => a.toLowerCase()).includes(t.to.toLowerCase())
+    )
+
+    const receipts = data.filter(t =>
+        t.to.toLowerCase() === account.toLowerCase() &&
+        dexAddresses.map(a => a.toLowerCase()).includes(t.from.toLowerCase())
+    );
+
+    return {
+        transfers, receipts
+    }
+}
 export async function reportSwapTransfers(
     accounts: string[],
     token: string,

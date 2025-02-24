@@ -7,7 +7,6 @@ import type {
   FunctionFragment,
   Result,
   Interface,
-  AddressLike,
   ContractRunner,
   ContractMethod,
   Listener,
@@ -21,26 +20,17 @@ import type {
 } from "./common";
 
 export interface LPInterface extends Interface {
-  getFunction(
-    nameOrSignature: "getPair" | "getReserves" | "mint"
-  ): FunctionFragment;
+  getFunction(nameOrSignature: "getReserves"): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "getPair",
-    values: [AddressLike, AddressLike]
-  ): string;
   encodeFunctionData(
     functionFragment: "getReserves",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "mint", values: [AddressLike]): string;
 
-  decodeFunctionResult(functionFragment: "getPair", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getReserves",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
 }
 
 export interface LP extends BaseContract {
@@ -86,12 +76,6 @@ export interface LP extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  getPair: TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "view"
-  >;
-
   getReserves: TypedContractMethod<
     [],
     [
@@ -104,19 +88,10 @@ export interface LP extends BaseContract {
     "view"
   >;
 
-  mint: TypedContractMethod<[to: AddressLike], [bigint], "nonpayable">;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
-  getFunction(
-    nameOrSignature: "getPair"
-  ): TypedContractMethod<
-    [tokenA: AddressLike, tokenB: AddressLike],
-    [string],
-    "view"
-  >;
   getFunction(
     nameOrSignature: "getReserves"
   ): TypedContractMethod<
@@ -130,9 +105,6 @@ export interface LP extends BaseContract {
     ],
     "view"
   >;
-  getFunction(
-    nameOrSignature: "mint"
-  ): TypedContractMethod<[to: AddressLike], [bigint], "nonpayable">;
 
   filters: {};
 }
