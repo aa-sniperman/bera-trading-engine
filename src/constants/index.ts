@@ -10,6 +10,7 @@ export const PROVIDER = new JsonRpcProvider(rpc);
 
 export const HOLD_ADDRESS = isMainnet ? '0xFF0a636Dfc44Bb0129b631cDd38D21B613290c98' : '0x7e5f556a859502b8Ba590dAFb92d37573D944DF8';
 export const HOLDSO_ROUTER_ADDRESS = isMainnet ? '0x3982F5CcbaE0cdA43fb7b3c669EecB361E012dcC' : '0x3982F5CcbaE0cdA43fb7b3c669EecB361E012dcC';
+export const HOLDSO_AGG_AGGRESS = '0x7d55D31adFde09f48d35cfcA13c08A31EBc790CB';
 export const HOLD_BERA_PAIR = '0xAD28e28d64Fb46c785246d0468dEc1c89C1774bA'
 export const SWAP_ROUTER_GATEWAY_DNS = "https://swap.hold.so/berachain/api";
 
@@ -30,6 +31,7 @@ export interface TokenConfigInfo {
     address: string,
     pair: string,
     symbol: string,
+    pump?: string,
   }
   export const TokenConfig = {
     BERA: {
@@ -40,6 +42,25 @@ export interface TokenConfigInfo {
     THOON: {
       address: "0xe80e3b8D439A4c2271CB58076FF79bEB1998179E",
       pair: "0x6C9dD9d1431E8aD2aA0b99002F0019Fb5D0880e5",
-      symbol: "THOON"
+      symbol: "THOON",
+      pump: "0x5Fc92a62ad5dbdE82c18D5bF51108fCBddB115e7"
+    },
+    ATI: {
+      address: "0x3262336B903F8DeCB1d9c9259138065d6c6E2e6F",
+      pair: "0x9aEF6241C191fED841ca45120CeFd582ca8fd0D9",
+      symbol: "ATI",
+      pump: "0x0D8ED695AB53F000041596677C899De62D41b681"
+    },
+    BR: {
+      address: "0xA6B796408a4B4dDd2ABc064c6193631D0EFD11D5",
+      pair: "0x9D9e4E0C159EdFd6De21BCa75BDF5154ab9d4Ce0",
+      symbol: "BR",
+      pump: ""
+    },
+    HENLO: {
+      address: "0x490e24237BF01119E8C26B8efcDf45Ed9a577539",
+      pair: "0x284Cb968C2A2e3bE1ac48CBaF92937DC4C6FD22e",
+      symbol: "HENLO",
+      pump: ""
     }
   }

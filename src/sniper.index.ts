@@ -23,7 +23,7 @@ async function checkBalances() {
         [HOLD_ADDRESS, NATIVE],
         ['HOLD', 'BERA']
     )
-    console.log(balances);
+    console.log(balances)
 }
 async function runAllSnipers(
     pump: string,

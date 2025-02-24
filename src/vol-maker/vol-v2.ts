@@ -11,6 +11,7 @@ export namespace VolumeMakerV2 {
     export interface VolMakerConfig {
         targetVol1h: number;
         minTradeSize: number;
+        maxTradeSize: number;
         timeScale: number;
         disableRebalancing?: boolean;
         maxWalletsNum?: number;
@@ -129,24 +130,23 @@ export namespace VolumeMakerV2 {
             const senderBaseBal = await Token.getTokenBalance(sender.address, this.baseTokenConfig.address);
             const senderBaseValue = Number(formatEther(senderBaseBal)) * this.basePrice;
 
-            console.log(
-                senderQuoteValue,
-                senderBaseValue
-            )
-
             const senderWallet = new Wallet(sender.privateKey, PROVIDER);
             if (senderQuoteValue < this.config.minTradeSize && senderBaseValue < this.config.minTradeSize) {
                 console.log(`Not enough money to trade, gathering funds from ${sender.address} to ${fundDestination.address}...`)
                 if (senderQuoteBal > 1000n)
                     try {
-                        await Token.transferETH(senderWallet, senderQuoteBal - parseEther('0.001'), fundDestination.address);
+                        if (this.quoteToken === NATIVE)
+                            await Token.transferETH(senderWallet, senderQuoteBal - parseEther('0.001'), fundDestination.address);
+                        else
+                            await Token.transferToken(senderWallet, this.quoteToken, senderQuoteBal, fundDestination.address);
+
                     } catch (err) {
 
                     }
                 await sleep(10000);
                 if (senderBaseBal > 1000n) {
                     try {
-                        await Token.transferToken(senderWallet, this.baseTokenConfig.address, senderQuoteBal, fundDestination.address);
+                        await Token.transferToken(senderWallet, this.baseTokenConfig.address, senderBaseBal, fundDestination.address);
                     } catch (err) {
 
                     }
@@ -171,9 +171,14 @@ export namespace VolumeMakerV2 {
                     1e9 * this.config.minTradeSize / (isBuy ? this.quotePrice : this.basePrice)
                 ) / 1e9
             ).toString());
-            const percent = getRandomInt(60, 90);
-            let tradeAmount = balance * BigInt(percent) / 100n;
-            tradeAmount = tradeAmount > minTrade ? tradeAmount : minTrade;
+
+            const maxTrade = parseEther((
+                Math.floor(
+                    1e9 * this.config.maxTradeSize / (isBuy ? this.quotePrice : this.basePrice)
+                ) / 1e9
+            ).toString());
+            const percent = getRandomInt(0, 101);
+            let tradeAmount = ((maxTrade - minTrade) * BigInt(percent) / 100n) + minTrade;
             tradeAmount = tradeAmount > balance ? balance : tradeAmount;
 
             let attempts = 0;

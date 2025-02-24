@@ -21,6 +21,39 @@ module.exports = {
                 NODE_ENV: "production"
             },
             autorestart: false
+        },
+        {
+            name: "ati",
+            script: "yarn ati",
+            env: {
+                NODE_ENV: "development"
+            },
+            env_production: {
+                NODE_ENV: "production"
+            },
+            autorestart: false
+        },
+        {
+            name: "br",
+            script: "yarn br",
+            env: {
+                NODE_ENV: "development"
+            },
+            env_production: {
+                NODE_ENV: "production"
+            },
+            autorestart: false
+        },
+        {
+            name: "henlo",
+            script: "yarn henlo",
+            env: {
+                NODE_ENV: "development"
+            },
+            env_production: {
+                NODE_ENV: "production"
+            },
+            autorestart: false
         }
     ]
 };

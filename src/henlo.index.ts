@@ -28,19 +28,13 @@ async function main() {
     //     randomArrayWithSum(10, 1520, 140, 160).map(n => parseEther(n.toString()))
     // )
 
-    const balances = await Token.getBalances(
-        (middleKeys).concat(makers).map(k => k.address),
-        [HOLD_ADDRESS, NATIVE, WRAPPED_NATIVE],
-        ['HOLD', 'BERA', 'WBERA']
-    )
-    console.log(balances);
     // // HoldsoMixTrade.mixSwapMultiWallets(makers.slice(0, 10).map(k => k.privateKey), 10);
 
-    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.THOON, {
+    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.HENLO, {
         targetVol1h: 50000,
-        minTradeSize: 20,
+        minTradeSize: 10,
         maxTradeSize: 100,
-        timeScale: 2000,
+        timeScale: 5000,
         maxWalletsNum: 10,
         disableRebalancing: true
     })

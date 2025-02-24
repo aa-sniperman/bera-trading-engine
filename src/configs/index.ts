@@ -12,7 +12,8 @@ const envVarsSchema = Joi.object()
     SIGNER_KEY: Joi.string().required(),
     NETWORK: Joi.string().valid('mainnet', 'testnet'),
     MAINNET_RPC: Joi.string().default('https://rpc.berachain.com/'),
-    TESTNET_RPC: Joi.string().default('https://bartio.rpc.berachain.com')
+    TESTNET_RPC: Joi.string().default('https://bartio.rpc.berachain.com'),
+    SCAN_API_KEY: Joi.string().required()
   })
   .unknown();
 
@@ -36,6 +37,7 @@ export const env = {
   },
   bera: {
     mainnetRpc: envVars.MAINNET_RPC,
-    testnetRpc: envVars.TESTNET_RPC
+    testnetRpc: envVars.TESTNET_RPC,
+    apiKey: envVars.SCAN_API_KEY
   },
 };

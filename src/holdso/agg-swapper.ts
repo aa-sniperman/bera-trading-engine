@@ -19,38 +19,42 @@ export namespace HoldsoAggSwapper {
         slippage: number;
         recipient: string
     }) {
-        const isFromNative = isNativeToken(from);
-        if (!isFromNative)
-            await Token.approveIfNeeded(wallet, SWAP_ROUTER_ADDRESSES, from, BigInt(amountIn))
-        // Step 2 call get quote
-        const data: { data: ResponseData } = await axios.get(
-            `${SWAP_ROUTER_GATEWAY_DNS}/swap`,
-            {
-                params: {
-                    src: from,
-                    dst: to,
-                    amount: amountIn,
-                    receiver: recipient,
-                    slippage,
-                },
-            }
-        );
+        try {
+            const isFromNative = isNativeToken(from);
+            if (!isFromNative)
+                await Token.approveIfNeeded(wallet, SWAP_ROUTER_ADDRESSES, from, BigInt(amountIn))
+            // Step 2 call get quote
+            const data: { data: ResponseData } = await axios.get(
+                `${SWAP_ROUTER_GATEWAY_DNS}/swap`,
+                {
+                    params: {
+                        src: from,
+                        dst: to,
+                        amount: amountIn,
+                        receiver: recipient,
+                        slippage,
+                    },
+                }
+            );
 
-        const valueBatchTx = isFromNative ? amountIn : "0";
+            const valueBatchTx = isFromNative ? amountIn : "0";
 
-        const populatedTx = {
-            data: data.data.tx.data,
-            from: wallet.address,
-            to: SWAP_ROUTER_ADDRESSES,
-            value: valueBatchTx,
-        };
+            const populatedTx = {
+                data: data.data.tx.data,
+                from: wallet.address,
+                to: SWAP_ROUTER_ADDRESSES,
+                value: valueBatchTx,
+            };
 
-        // Step 3: send transaction to swap
-        const tx = await wallet.sendTransaction(populatedTx);
+            // Step 3: send transaction to swap
+            const tx = await wallet.sendTransaction(populatedTx);
 
-        await tx.wait();
+            await tx.wait();
 
-        return tx.hash;
+            return tx.hash;
+        } catch (err) {
+
+        }
     }
 
     /// Step 1: Call get quote

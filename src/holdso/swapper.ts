@@ -20,6 +20,7 @@ export namespace HoldsoSwap {
     await approveTokenIfNeeded(privKey, params.tokenIn as string, params.amountIn as bigint);
     const wallet = new Wallet(privKey, PROVIDER);
     const routerContract = HoldsoRouter__factory.connect(HOLDSO_ROUTER_ADDRESS, wallet);
+    console.log(params)
     const tx = await routerContract.exactInputSingle(params);
     await tx.wait();
     return tx.hash;

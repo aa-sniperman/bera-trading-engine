@@ -1,4 +1,4 @@
-import { HOLD_ADDRESS, NATIVE, PROVIDER, TokenConfig, WRAPPED_NATIVE } from "./constants";
+import { HOLD_ADDRESS, NATIVE, TokenConfig, WRAPPED_NATIVE } from "./constants";
 import { FundDistribution } from "./fund-distribution";
 import { Keys } from "./keys";
 import { VolumeMakerV2 } from "./vol-maker/vol-v2";
@@ -8,14 +8,11 @@ import { Token } from "./token";
 import { randomArrayWithSum } from "./utils";
 import { HoldsoMixTrade } from "./holdso/mixswap";
 import { HoldsoAggSwapper } from "./holdso/agg-swapper";
-import { HoldsoSwap } from "./holdso/swapper";
-import { writeFileSync } from "fs";
 
 async function main() {
     const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
     const makers = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
 
-    // await Token.transferToken(new Wallet(middleKeys[2].privateKey, PROVIDER), HOLD_ADDRESS, parseEther('150'), middleKeys[3].address);
     // await FundDistribution.distribute(
     //     {
     //         index: 0,
@@ -28,19 +25,13 @@ async function main() {
     //     randomArrayWithSum(10, 1520, 140, 160).map(n => parseEther(n.toString()))
     // )
 
-    const balances = await Token.getBalances(
-        (middleKeys).concat(makers).map(k => k.address),
-        [HOLD_ADDRESS, NATIVE, WRAPPED_NATIVE],
-        ['HOLD', 'BERA', 'WBERA']
-    )
-    console.log(balances);
     // // HoldsoMixTrade.mixSwapMultiWallets(makers.slice(0, 10).map(k => k.privateKey), 10);
 
-    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.THOON, {
+    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BR, {
         targetVol1h: 50000,
-        minTradeSize: 20,
+        minTradeSize: 10,
         maxTradeSize: 100,
-        timeScale: 2000,
+        timeScale: 4000,
         maxWalletsNum: 10,
         disableRebalancing: true
     })
