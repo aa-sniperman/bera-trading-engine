@@ -4,6 +4,7 @@ import { BERAIS_FACTORY, HOLD_ADDRESS, NATIVE, PROVIDER } from "./constants";
 import { ERC20__factory, LP__factory, Meme__factory, MemeFactory__factory } from "./contracts";
 import amounts from "./amounts.json";
 import allocations from "./allocations.json";
+import snapshot from "./snapshot.json";
 
 import * as fs from 'fs';
 import { Keys } from "./keys";
@@ -195,7 +196,8 @@ async function multisend(){
     const wallet = new Wallet(makers[0].privateKey, PROVIDER);
     const amounts = [1000n, 1100n, 1200n];
     const recipients = makers.slice(1, 4).map(k => k.address);
-    await Token.multiSend(wallet, token, amounts, recipients);
+    // await Token.multiSend(wallet, token, amounts, recipients);
+    await Token.multiSendJSON(wallet, token, snapshot)
 }
 // launch().then();
 multisend().then();

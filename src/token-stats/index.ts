@@ -19,7 +19,6 @@ export namespace TokenStats {
         const sort = 'desc';
         const baseUrl = 'https://api.berascan.com/api';
 
-        while(true) {
         const params = {
             module: 'account',
             action: 'tokentx',
@@ -40,7 +39,6 @@ export namespace TokenStats {
             console.error('Error fetching token transactions:', (error as Error).message);
             return [];
         }
-    }
     }
     export async function reportBalances(config: TokenConfigInfo) {
         const makerSets = Keys.getVolKeys(config);
@@ -125,7 +123,7 @@ export namespace TokenStats {
                 const vol24h = Number(response.data.pairs[0].volume.h24);
                 const mc = Number(response.data.pairs[0].marketCap);
 
-                return {price, vol1h, vol24h, mc};
+                return { price, vol1h, vol24h, mc };
             }
             catch (e) {
                 await sleep(5000)

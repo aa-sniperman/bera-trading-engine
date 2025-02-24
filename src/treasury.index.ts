@@ -1,5 +1,5 @@
 import { createObjectCsvWriter } from 'csv-writer';
-import { HOLD_ADDRESS, NATIVE, TokenConfig, WRAPPED_NATIVE } from './constants';
+import { HOLD_ADDRESS, HOLDSO_AGG_ADDRESS, NATIVE, TokenConfig, WRAPPED_NATIVE } from './constants';
 import { reportSupply } from './treasury-management/supply-report';
 import { fetchAccountSwaps, reportClusterSwaps, reportVol } from './treasury-management/swap-report';
 import { sleep } from './utils';
@@ -105,7 +105,7 @@ async function transfer() {
     const data = await reportClusterSwapTransfers(
         HOLD_ADDRESS,
         allKeys.map(k => k.address),
-        Object.values(TokenConfig).map(k => k.pair)
+        Object.values(TokenConfig).map(k => k.pair).concat(HOLDSO_AGG_ADDRESS)
     );
     console.log(data);
 }
@@ -120,4 +120,4 @@ async function audit() {
     // writeFileSync(`./src/accounting-data/${account}.transfers.json`, JSON.stringify(transferTxHashes));
 }
 
-transfer().then();
+vol().then();

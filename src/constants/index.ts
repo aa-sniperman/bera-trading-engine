@@ -10,7 +10,7 @@ export const PROVIDER = new JsonRpcProvider(rpc);
 
 export const HOLD_ADDRESS = isMainnet ? '0xFF0a636Dfc44Bb0129b631cDd38D21B613290c98' : '0x7e5f556a859502b8Ba590dAFb92d37573D944DF8';
 export const HOLDSO_ROUTER_ADDRESS = isMainnet ? '0x3982F5CcbaE0cdA43fb7b3c669EecB361E012dcC' : '0x3982F5CcbaE0cdA43fb7b3c669EecB361E012dcC';
-export const HOLDSO_AGG_AGGRESS = '0x7d55D31adFde09f48d35cfcA13c08A31EBc790CB';
+export const HOLDSO_AGG_ADDRESS = '0x7d55D31adFde09f48d35cfcA13c08A31EBc790CB';
 export const HOLD_BERA_PAIR = '0xAD28e28d64Fb46c785246d0468dEc1c89C1774bA'
 export const SWAP_ROUTER_GATEWAY_DNS = "https://swap.hold.so/berachain/api";
 

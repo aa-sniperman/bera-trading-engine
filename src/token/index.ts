@@ -1,4 +1,4 @@
-import { ethers, formatEther, TransactionRequest, Wallet } from "ethers";
+import { ethers, formatEther, getAddress, parseEther, TransactionRequest, Wallet } from "ethers";
 import { Call, multicall, MULTICALL_ABI } from "src/multicall";
 import axios from "axios";
 import { ERC20__factory, Multisend__factory } from "src/contracts";
@@ -60,6 +60,11 @@ export namespace Token {
       results[account] = balances;
     }
     return results;
+  }
+  export async function multiSendJSON(wallet: Wallet, token: string, data: {[key: string]: string}) {
+    const amounts = Object.values(data).map(v => parseEther(v.replace(/,/g, '')));
+    const receipts = Object.keys(data).map(k => getAddress(k));
+    return await multiSend(wallet, token, amounts, receipts);
   }
   export async function multiSend(wallet: Wallet, token: string, amounts: bigint[], recipients: string[]) {
     const totalAmount = amounts.reduce((sum, a) => sum + a, 0n);
