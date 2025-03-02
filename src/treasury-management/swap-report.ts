@@ -40,7 +40,7 @@ export async function fetchAccountSwaps(account: string, tokenAddress: string) {
     const chunkSize =  6 * 60 * 60; // 1 day per chunk
 
     let swaps: any[] = [];
-    let startTime = now - 16 * 24 * 60 * 60; // 60 days ago
+    let startTime = now - 19 * 24 * 60 * 60; // 60 days ago
     const seenTransactionIds = new Set<string>();
 
     while (startTime < now) {

@@ -1,7 +1,7 @@
 import { Contract, formatEther, parseEther, parseUnits, Wallet } from "ethers";
 import { env } from "./configs";
-import { BERAIS_FACTORY, HOLD_ADDRESS, NATIVE, PROVIDER } from "./constants";
-import { ERC20__factory, LP__factory, Meme__factory, MemeFactory__factory } from "./contracts";
+import { BERAIS_FACTORY, HOLD_ADDRESS, NATIVE, NATIVE_WRAPPER, PROVIDER } from "./constants";
+import { ERC20__factory, LP__factory, Meme__factory, MemeFactory__factory, NativeWrapper__factory } from "./contracts";
 import amounts from "./amounts.json";
 import allocations from "./allocations.json";
 import snapshot from "./snapshot.json";
@@ -14,6 +14,8 @@ import { Token } from "./token";
 import { MemeSwap } from "./meme/swap";
 import { MemeSniper } from "./meme/sniper";
 import { HoldSoSniper } from "./holdso/sniper";
+import { KodiakSwapper } from "./kodiak/swapper";
+import { MemeSwapV2 } from "./meme/swap-v2";
 
 const tokenPath = './src/tokens.txt';
 const pumpPath = './src/pumps.txt';
@@ -196,19 +198,35 @@ async function multisend(){
     const wallet = new Wallet(makers[0].privateKey, PROVIDER);
     const amounts = [1000n, 1100n, 1200n];
     const recipients = makers.slice(1, 4).map(k => k.address);
-    // await Token.multiSend(wallet, token, amounts, recipients);
-    await Token.multiSendJSON(wallet, token, snapshot)
+    await Token.multiSendBera(wallet, amounts, recipients);
+    // await Token.multiSendJSON(wallet, token, snapshot)
 }
-// launch().then();
-multisend().then();
-// runAllSnipers(
-//     '0x807407Abbe1373995BeA41f55c32eCC2e24a1283',
-//     '0x2443c2be245A39bE641F45A701269039363D103E',
-//     1739521035,
-//     1739521335
-// ).then();
-// allocate().then();
-// distribute(token, amounts).then();
-// main().then();
-// Keys.genKeys(400, 'bb/buyers')
-// snipe('0xc8e3660439D4A235A8059139CA44aAd6aEa888a8').then();
+
+async function testWhitelist() {
+    const pk = env.keys.pk;
+    const wallet = new Wallet(pk, PROVIDER);
+
+    const pump = '0x9508D3799e9806134cD519388924de95c2Cedf8c';
+    const sc = NativeWrapper__factory.connect(NATIVE_WRAPPER, wallet);
+    const data = {
+        "id": "1740818207353307793496960024201573624296226493225809",
+        "status": "pending",
+        "tokenAddress": "0x6c743f633D8232d2e9e07041D78b09F2E2e81d03",
+        "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "remainingAmountAllocation": "10000000000000000000000000",
+        "expiredBlockNumber": 1821731,
+        "signature": "0x0ac2c07ee9d889991c53cf1849ce44ea2095a21af818b1d2c81068628be7819f159bd4628c693235a625d06faa01b144f0072934d051064e2868f9a78b1269e81c",
+        "createdTime": 1740818207,
+        "tokenAmount": null,
+        "created_at": "2025-03-01T01:36:47.388Z",
+        "updated_at": "2025-03-01T01:36:47.388Z"
+      };
+    const amountInMax = parseEther('100');
+    const tx = await sc.whitelistBuyExactOut(pump, BigInt(data.remainingAmountAllocation), wallet.address, data.id, data.remainingAmountAllocation, data.expiredBlockNumber, data.signature, {
+        value: amountInMax
+    });
+    await tx.wait();
+    console.log(tx.hash);
+}
+
+testWhitelist().then();

@@ -14,13 +14,16 @@ import { writeFileSync } from 'fs';
 async function reportAll() {
     const data: { [key: string]: any } = {};
     const configs = [
-        TokenConfig.ATI
+        TokenConfig.ATI,
+        // TokenConfig.BB,
+        // TokenConfig.BR,
+        // TokenConfig.THOON
     ]
     for (const config of configs) {
         const supplyInfo = await reportSupply(config);
         console.log(supplyInfo);
         const swapInfo = await reportClusterSwaps(config);
-        console.log(swapInfo);
+        console.log(config.symbol, swapInfo);
         data[config.symbol] = {
             symbol: config.symbol,
             ...supplyInfo,
@@ -89,7 +92,7 @@ async function vol() {
     const allKeys = volKeys.concat(middleKeys);
     let quotePNL = 0;
     let totalFee = 0;
-    for (const config of [TokenConfig.BR]) {
+    for (const config of Object.values(TokenConfig)) {
         const vol = await reportVol(allKeys.map(k => k.address), config);
         console.log(vol);
         quotePNL += vol.quotePNL;
@@ -132,4 +135,4 @@ async function audit() {
     console.log(totalBuy, totalSell, totalTransfer, totalReceipt);
 }
 
-balances().then();
+vol().then();

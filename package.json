@@ -13,6 +13,7 @@
     "allocate": "npx ts-node -r tsconfig-paths/register src/allocate.ts",
     "treasury": "npx ts-node -r tsconfig-paths/register src/treasury.index.ts",
     "hold-bera-vol": "npx ts-node -r tsconfig-paths/register src/hold-bera-vol.index.ts",
+    "hold-bera-vol-kodiak": "npx ts-node -r tsconfig-paths/register src/hold-bera-vol-kodiak.index.ts",
     "thoon": "npx ts-node -r tsconfig-paths/register src/thoon.index.ts",
     "henlo": "npx ts-node -r tsconfig-paths/register src/henlo.index.ts",
     "ati": "npx ts-node -r tsconfig-paths/register src/ati.index.ts",

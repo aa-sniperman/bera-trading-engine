@@ -11,7 +11,7 @@ async function main() {
     const middleKeys = require('src/secrets/bera/middle-keys.json') as Keys.WalletKey[];
     const makers = require('src/secrets/bera/vol-keys.json') as Keys.WalletKey[];
 
-    // const amounts = randomArrayWithSum(10, 3000, 280, 320);
+    // const amounts = randomArrayWithSum(10, 1500, 140, 160);
     // await Token.batchFastTransferToken(
     //     new Wallet(BERA, PROVIDER),
     //     HOLD_ADDRESS,
@@ -20,19 +20,15 @@ async function main() {
     // )
 
     // const balances = await Token.getBalances(
-    //     makers.map(k => k.address),
-    //     ['0xFF0a636Dfc44Bb0129b631cDd38D21B613290c98' 
-    //         // ...Object.values(TokenConfig).map(config => config.address)
-    //     ],
-    //     ['HOLD'
-    //         // ...Object.values(TokenConfig).map(config => config.symbol)
-    //     ]
+    //     makers.slice(0, 10).map(k => k.address),
+    //     [HOLD_ADDRESS, WRAPPED_NATIVE, NATIVE],
+    //     ['HOLD', 'WBERA', 'BERA']
     // )
     // console.log(balances);
 
     // HoldsoMixTrade.mixSwapMultiWallets(makers.slice(0, 10).map(k => k.privateKey), 10);
 
-    const volMaker = new VolumeMakerV2.Maker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
+    const volMaker = new VolumeMakerV2.KodiakMaker(makers, HOLD_ADDRESS, TokenConfig.BERA, {
         targetVol1h: 50000,
         minTradeSize: 20,
         maxTradeSize: 100,

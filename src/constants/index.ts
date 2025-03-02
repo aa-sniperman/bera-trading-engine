@@ -24,7 +24,10 @@ export const MULTISEND_ADDRESS = '0xE3f362f35CD567700A9490f6E803BFA1C7846E7c';
 export const MULTICALL_ADDRESS = '0xcA11bde05977b3631167028862bE2a173976CA11';
 
 export const BERAIS_FACTORY = isMainnet ? '0xeA5Bc60A006AFA9Fb9B3929280544a26246e490D' : '0xC59C785cFAa33C0d4a4565f00C0062f7757eAF9a';
-
+export const BERAIS_FACTORY_V2 = '0x2715Dbad296BCC5584998952cFD76ee03c788B34';
+export const NATIVE_WRAPPER = '0xAf24D87A919a27A15D88ecBAd3B2F9cf39e4fA4a';
+export const KODIAK_ROUTER = '0xe301E48F77963D3F7DbD2a4796962Bd7f3867Fb4';
+export const KODIAK_ROUTER_V2 = '0xd91dd58387Ccd9B66B390ae2d7c66dBD46BC6022';
 export const CHAIN_ID = isMainnet ? 80094 : 80084;
 export const MAX_UINT256 = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
@@ -56,6 +59,12 @@ export interface TokenConfigInfo {
       address: "0xA6B796408a4B4dDd2ABc064c6193631D0EFD11D5",
       pair: "0x9D9e4E0C159EdFd6De21BCa75BDF5154ab9d4Ce0",
       symbol: "BR",
+      pump: ""
+    },
+    BB: {
+      address: "0x5d7768361Bdeb9d492aFF662cFF91ABbd5f3f375",
+      pair: "0x3408b63e0B1dC7569d2d7fda73BCb6a66BA79493",
+      symbol: "BB",
       pump: ""
     },
     HENLO: {

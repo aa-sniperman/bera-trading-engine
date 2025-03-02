@@ -3,9 +3,14 @@
 /* eslint-disable */
 export { ERC20__factory } from "./ERC20__factory";
 export { HoldsoRouter__factory } from "./HoldsoRouter__factory";
+export { KodiakRouter02__factory } from "./KodiakRouter02__factory";
 export { LP__factory } from "./LP__factory";
 export { LockVault__factory } from "./LockVault__factory";
 export { Meme__factory } from "./Meme__factory";
 export { MemeFactory__factory } from "./MemeFactory__factory";
 export { MemeFactoryTestnet__factory } from "./MemeFactoryTestnet__factory";
+export { MemeFactoryV2__factory } from "./MemeFactoryV2__factory";
+export { MemeV2__factory } from "./MemeV2__factory";
 export { Multisend__factory } from "./Multisend__factory";
+export { NativeWrapper__factory } from "./NativeWrapper__factory";
+export { UniswapV2Router__factory } from "./UniswapV2Router__factory";
